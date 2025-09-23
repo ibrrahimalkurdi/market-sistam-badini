@@ -6,7 +6,7 @@ from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # ل ڤێرێ تۆکنێ بۆتێ خۆ یێ کو تە ژ BotFather وەرگرتی بنڤیسە
-BOT_TOKEN = "HI:YOUR_TELEGRAM_BOT_TOKEN_HERE"
+BOT_TOKEN = "8143785316:AAElptFmQidyCQ2z0Jj3yysdqWCBhMr36m0"
 
 # چالاکرنا لۆگینگێ بۆ زانینا کێشەیان
 logging.basicConfig(
