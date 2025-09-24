@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پانێلا ئەدمینی - سیستەما مارکێتێ</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #005f73;
+            --secondary-color: #0a9396;
+            --accent-color: #94d2bd;
+            --danger-color: #ae2012;
+            --success-color: #2a9d8f;
+            --background-color: #edf2f4;
+            --card-bg: #ffffff;
+            --text-color: #2b2d42;
+            --border-radius: 12px;
+            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', -apple-system, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        header h1 { margin: 0; font-size: 1.6rem; }
+        main { padding: 2rem; max-width: 1600px; margin: auto; }
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        h2 {
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0.2rem;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn.filter-btn { background-color: #e9c46a; }
+        .btn.filter-btn.active { background-color: #f4a261; font-weight: bold; }
+        .back-btn {
+            margin-bottom: 1.5rem;
+            background-color: var(--primary-color);
+        }
+
+        /* ستایلێن نوو بۆ مالپەرێ سەرەکی */
+        #home-view h2 { text-align: center; color: var(--primary-color); }
+        .home-menu {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            padding: 2rem 0;
+        }
+        .home-icon {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 280px;
+            border-bottom: 5px solid transparent;
+        }
+        .home-icon:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-bottom-color: var(--secondary-color);
+        }
+        .home-icon .icon-graphic {
+            font-size: 4.5rem;
+            margin-bottom: 1rem;
+            line-height: 1;
+            color: var(--primary-color);
+        }
+        .home-icon h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+        }
+        
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        @media (min-width: 992px) {
+            .admin-layout { grid-template-columns: 450px 1fr; }
+        }
+        .admin-section {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 95, 115, 0.2);
+        }
+        .form-submit-btn { width: 100%; margin-top: 1rem; }
+        
+        .barcode-input-group { display: flex; align-items: center; gap: 0.5rem; }
+        #product-list-wrapper { overflow-x: auto; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 1rem; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+        
+        .price-col { font-weight: bold; }
+        .price-col.purchase { color: var(--danger-color); }
+        .price-col.selling { color: var(--success-color); }
+        .price-col.profit { color: var(--primary-color); }
+        
+        .action-btn { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
+        .action-btn:hover { transform: scale(1.2); }
+        .delete-btn { color: var(--danger-color); }
+        .edit-btn { color: var(--secondary-color); margin-left: 0.5rem; }
+        
+        #login-view { max-width: 400px; margin: 5rem auto; text-align: center; }
+        
+        #toast {
+            position: fixed; bottom: -100px; left: 50%;
+            transform: translateX(-50%); background-color: var(--success-color); color: white;
+            padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: bottom 0.5s ease; z-index: 1000; width: 90%; max-width: 500px; text-align: center;
+        }
+        #toast.danger { background-color: var(--danger-color); }
+        #toast.show { bottom: 20px; }
+        
+        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; }
+        #scanner-container .viewport, #scanner-container video { width: 100%; }
+        .report-placeholder { text-align: center; padding: 2rem; background-color: #fafafa; border-radius: 8px; }
+        .filter-buttons { margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        /* ستایلێن نوو بۆ ڕاپۆرتا */
+         .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .dashboard-card {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        .dashboard-card h3 { margin-top: 0; font-size: 1.1rem; color: #555; }
+        .dashboard-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
+        .dashboard-card .value small { font-size: 1rem; }
+
+        @media (max-width: 768px) {
+            main { padding: 1rem; }
+            .admin-section { padding: 1.2rem; }
+            header h1 { font-size: 1.4rem; }
+            h2 { font-size: 1.3rem; margin-bottom: 1.5rem; }
+            .btn { padding: 0.7rem 1.2rem; font-size: 1rem; }
+            th, td { padding: 0.75rem; font-size: 0.9rem; }
+            #login-view { margin: 2rem auto; padding: 0 1rem; }
+            .home-icon { width: 90%; padding: 1.5rem; }
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header><h1>پانێلا رێڤەبەریێ</h1></header>
+    <main>
+        <!-- بەشێ لۆگینێ -->
+        <section id="login-view" class="view active">
+            <div class="admin-section">
+                <h2>چوونا ژۆر (ئەدمین)</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">ئیمەیل:</label>
+                        <input type="email" id="email" required value="admin@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">پاسۆرد:</label>
+                        <input type="password" id="password" required value="admin123">
+                    </div>
+                    <button type="submit" class="btn">داخلبوون</button>
+                    <button type="button" id="create-admin-user" class="btn" style="background-color: #0d6efd; margin-top: 10px;">درستکرنا ئەدمینێ نوو</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- مالپەرێ سەرەکی -->
+        <section id="home-view" class="view">
+            <h2>مالپەرێ سەرەکی</h2>
+            <div class="home-menu">
+                <div class="home-icon" data-target="management-view">
+                    <div class="icon-graphic">&#128230;</div>
+                    <h3>رێڤەبرنا بەرهەمان</h3>
+                </div>
+                <div class="home-icon" data-target="suppliers-view">
+                    <div class="icon-graphic">&#128100;</div>
+                    <h3>رێڤەبرنا دabینکەران</h3>
+                </div>
+                <div class="home-icon" data-target="payments-view">
+                    <div class="icon-graphic">&#128181;</div>
+                    <h3>رێڤەبرنا پارەدانان</h3>
+                </div>
+                 <div class="home-icon" data-target="reports-view">
+                    <div class="icon-graphic">&#128203;</div>
+                    <h3>ڕاپۆرت و شرۆڤەکرن</h3>
+                </div>
+            </div>
+             <button id="logout-btn" class="btn back-btn" style="background-color: var(--danger-color); margin-top: 2rem; display: block; width: fit-content; margin-left: auto; margin-right: auto;">چوونا دەرڤە</button>
+        </section>
+
+        <!-- دیمەنێ رێڤەبرنا بەرهەمان -->
+        <section id="management-view" class="view">
+             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+            <div class="admin-layout">
+                <div class="admin-section">
+                    <h2>زێدەکرن یان نویکرنا بەرهەمەکێ</h2>
+                    <form id="add-product-form">
+                        <div class="form-group">
+                            <label for="barcode">ژمارا بارکۆدی:</label>
+                            <div class="barcode-input-group">
+                                <input type="text" id="barcode" required placeholder="بارکۆدێ بنڤیسە یان سکان بکە">
+                                <button type="button" id="scan-barcode-btn" class="btn">&#128247;</button>
+                            </div>
+                        </div>
+                        <div id="scanner-container" style="display:none;">
+                            <div id="interactive" class="viewport"></div>
+                            <button type="button" id="stop-scan-btn" class="btn" style="width:100%; margin-top:0.5rem; background-color: var(--danger-color);">راوەستاندن</button>
+                        </div>
+                        <div class="form-group"><label for="product-name">ناڤێ بەرهەمی:</label><input type="text" id="product-name" required></div>
+                        <div class="form-group">
+                            <label for="product-supplier">دابینکەر:</label>
+                            <select id="product-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select>
+                         </div>
+                        <div class="form-group"><label for="product-category">جورێ بەرهەمی:</label><input type="text" id="product-category" required></div>
+                        <div class="form-group"><label for="product-quantity">کەمیا بەرهەمی (ب دانە):</label><input type="number" id="product-quantity" required></div>
+                        <div class="form-group"><label for="product-cartons">ژمارا کارتونان (ئختیاری):</label><input type="number" id="product-cartons"></div>
+                        <div class="form-group"><label for="product-expiry-date">رووژا ب دوماهیک هاتنێ:</label><input type="date" id="product-expiry-date" required></div>
+                        <div class="form-group"><label for="product-batch-number">ژمارا وەجبێ (ئختیاری):</label><input type="text" id="product-batch-number"></div>
+                        <div class="form-group"><label for="product-purchase-price">بهایێ کرینێ (جملە):</label><input type="number" id="product-purchase-price" required></div>
+                        <div class="form-group"><label for="product-selling-price">بهایێ فرۆتنێ:</label><input type="number" id="product-selling-price" required></div>
+                        <button type="submit" class="btn form-submit-btn">تۆمارکرن</button>
+                    </form>
+                </div>
+                <div class="admin-section">
+                    <h2>لیستا بەرهەمان</h2>
+                    <div class="form-group"><input type="text" id="search-input" placeholder="لێگەریان ل گۆر ناڤێ بەرهەمی..."></div>
+                    <div id="product-list-wrapper"><div id="product-list-container"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- دیمەنێ رێڤەبرنا دابینکەران -->
+        <section id="suppliers-view" class="view">
+             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+            <div class="admin-layout">
+                <div class="admin-section">
+                    <h2>زێدەکرنا دابینکەرەکێ نوی</h2>
+                    <form id="add-supplier-form">
+                        <div class="form-group"><label for="supplier-name">ناڤێ دابینکەری (کۆمپانیا):</label><input type="text" id="supplier-name" required></div>
+                        <div class="form-group"><label for="supplier-contact">زانیاریێن پەیوەندیێ (ناڤ، ژمارە):</label><input type="text" id="supplier-contact"></div>
+                        <button type="submit" class="btn form-submit-btn">تۆمارکرن</button>
+                    </form>
+                </div>
+                <div class="admin-section">
+                    <h2>لیستا دابینکەران</h2>
+                    <div id="supplier-list-container"></div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- دیمەنێ رێڤەبرنا پارەدانان -->
+        <section id="payments-view" class="view">
+            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+            <div class="admin-layout">
+                <div class="admin-section">
+                    <h2>زێدەکرنا پارەدانەکا نوو</h2>
+                    <form id="add-payment-form">
+                        <div class="form-group">
+                            <label for="payment-supplier">دابینکەر:</label>
+                            <select id="payment-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select>
+                        </div>
+                        <div class="form-group"><label for="payment-amount">کوژمێ پارەدانێ (ب دینارێ عیراقی):</label><input type="number" id="payment-amount" required></div>
+                        <div class="form-group"><label for="payment-date">رووژا پارەدانێ:</label><input type="date" id="payment-date" required></div>
+                        <button type="submit" class="btn form-submit-btn">تۆمارکرنا پارەدانێ</button>
+                    </form>
+                </div>
+                <div class="admin-section">
+                    <h2>لیستا پارەدانان</h2>
+                    <div id="payment-list-container"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- دیمەنێ ڕاپۆرتان -->
+        <section id="reports-view" class="view">
+             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+             
+             <div class="admin-section">
+                <h2>شرۆڤەکرنا گشتی</h2>
+                <div id="dashboard-summary-container"></div>
+             </div>
+
+             <div class="admin-section">
+                <h2>ڕاپۆرتا بهایێ گشتیێ کۆگەهێ</h2>
+                <div id="inventory-value-report-container"></div>
+            </div>
+
+            <div class="admin-section">
+                <h2>ڕاپۆرتا پارەدانێن دابینکەران</h2>
+                <div class="filter-buttons" id="payment-report-filters">
+                    <button class="btn filter-btn active" data-filter="all">هەمی دەم</button>
+                    <button class="btn filter-btn" data-filter="today">ئەڤرۆ</button>
+                    <button class="btn filter-btn" data-filter="week">ڤێ حەفتیێ</button>
+                    <button class="btn filter-btn" data-filter="month">ڤی هەیڤێ</button>
+                </div>
+                <div id="supplier-payments-report-container"></div>
+            </div>
+
+             <div class="admin-section">
+                <h2>ڕاپۆرتا کرینان ژ دابینکەران</h2>
+                <div id="supplier-purchases-report-container"></div>
+            </div>
+
+             <div class="admin-section">
+                <h2>ڕاپۆرتا قازانجا بەرهەمان (لدیڤ هەر دانەیەک)</h2>
+                <div id="product-profitability-report-container"></div>
+            </div>
+
+            <div class="admin-section">
+                <h2>ئاگەهداریا کێمبوونا ستۆکێ</h2>
+                <p>ئەو بەرهەمێن ژمارا وان ژ 10 دانان کێمترە.</p>
+                <div id="low-stock-report-container"></div>
+            </div>
+
+             <div class="admin-section">
+                <h2>بەرهەمێن نێزیک ل تاریخا خلاسبوونێ</h2>
+                <p>ئەو بەرهەمێن د 30 ڕۆژێن بهێت دا تاریخا وان ب دوماهیک دهێت.</p>
+                <div id="expiry-report-container"></div>
+            </div>
+             
+             <div class="admin-section">
+                <h2>ڕاپۆرتێن فرۆشتنێ</h2>
+                <div id="sales-report-container"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+    // --- Firebase Configuration ---
+    // پێویستە ئەم بەشە بە زانیارییەکانی پڕۆژەی Firebase ی خۆت پڕ بکەیتەوە
+    const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
+  authDomain: "ibrrahim-alkurdi.firebaseapp.com",
+  projectId: "ibrrahim-alkurdi",
+  storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
+  messagingSenderId: "490128006332",
+  appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
+  measurementId: "G-Q4VWN89L3R"
+
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const createAdminUserBtn = document.getElementById('create-admin-user');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        const homeIcons = document.querySelectorAll('.home-icon');
+        const backButtons = document.querySelectorAll('.back-btn');
+        const allViews = document.querySelectorAll('.view');
+        const toast = document.getElementById('toast');
+        
+        // Product Management Elements
+        const addProductForm = document.getElementById('add-product-form');
+        const productListContainer = document.getElementById('product-list-container');
+        const barcodeInput = document.getElementById('barcode');
+        const scanBtn = document.getElementById('scan-barcode-btn');
+        const stopScanBtn = document.getElementById('stop-scan-btn');
+        const scannerContainer = document.getElementById('scanner-container');
+        const searchInput = document.getElementById('search-input');
+        
+        // Supplier Management Elements
+        const addSupplierForm = document.getElementById('add-supplier-form');
+        const supplierListContainer = document.getElementById('supplier-list-container');
+        const productSupplierDropdown = document.getElementById('product-supplier');
+        const paymentSupplierDropdown = document.getElementById('payment-supplier');
+
+        // Payment Management Elements
+        const addPaymentForm = document.getElementById('add-payment-form');
+        const paymentListContainer = document.getElementById('payment-list-container');
+
+        // Reports Elements
+        const dashboardSummaryContainer = document.getElementById('dashboard-summary-container');
+        const lowStockReportContainer = document.getElementById('low-stock-report-container');
+        const expiryReportContainer = document.getElementById('expiry-report-container');
+        const supplierPaymentsReportContainer = document.getElementById('supplier-payments-report-container');
+        const inventoryValueReportContainer = document.getElementById('inventory-value-report-container');
+        const paymentReportFilters = document.getElementById('payment-report-filters');
+        const supplierPurchasesReportContainer = document.getElementById('supplier-purchases-report-container');
+        const productProfitabilityReportContainer = document.getElementById('product-profitability-report-container');
+        const salesReportContainer = document.getElementById('sales-report-container');
+
+        // --- Global Data Arrays (will be populated from Firestore) ---
+        let products = [];
+        let suppliers = [];
+        let payments = [];
+        let sales = [];
+        let currentBarcodeDocId = null; // Used for editing products
+
+        // --- Utility Functions ---
+        function showToast(message, type = 'success') {
+            toast.textContent = message; toast.className = type; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function switchView(viewId) {
+            allViews.forEach(v => v.classList.remove('active'));
+            const newView = document.getElementById(viewId);
+            if (newView) newView.classList.add('active');
+        }
+
+        function formatCurrency(number) {
+            return parseInt(number).toLocaleString() + ' <small>دینار</small>';
+        }
+
+        // --- Firebase Auth Listener ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in.
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists && doc.data().role === 'admin') {
+                        switchView('home-view');
+                        showToast('ب خێرهاتی بۆ پانێلا ئەدمینی');
+                        loadInitialDataAndReports();
+                    } else {
+                        showToast('تو ڕێگەپێدراو نینین بۆ چونە ژوورەوە وەک ئەدمین.', 'danger');
+                        auth.signOut();
+                    }
+                }).catch(error => {
+                    console.error("Error getting user role:", error);
+                    showToast('خەلەتی د وەرگرتنا ڕۆڵا بکارهێنەری دا.', 'danger');
+                    auth.signOut();
+                });
+            } else {
+                // User is signed out.
+                switchView('login-view');
+            }
+        });
+
+        // --- Authentication Logic ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // AuthStateChanged listener will handle view switching and role check
+            } catch (error) {
+                showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger');
+            }
+        });
+
+        createAdminUserBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showToast('تکایە ئیمەیل و پاسۆردێ بنویسە بۆ دروستکرنا ئەدمین.', 'danger');
+                return;
+            }
+
+            if (!confirm(`ئەرێ دخوازی ئەکاونتەکێ نوی دروست بکەی بۆ ئەدمین ب ئیمەیلێ: ${email}؟`)) {
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                // Set admin role in Firestore for the new user
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    email: email,
+                    role: 'admin',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('ئەکاونتێ ئەدمین ب سەرکەفتی هاتە دروستکرن. نوکە دشێی داخل ببی.', 'success');
+            } catch (error) {
+                showToast(`خەلەتی د دروستکرنا ئەکاونتی دا: ${error.message}`, 'danger');
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                showToast('ب سەرکەفتی چوویە دەرڤە.', 'success');
+                // Clear data
+                products = []; suppliers = []; payments = []; sales = [];
+                // Clear UI
+                productListContainer.innerHTML = '';
+                supplierListContainer.innerHTML = '';
+                paymentListContainer.innerHTML = '';
+                dashboardSummaryContainer.innerHTML = '';
+                inventoryValueReportContainer.innerHTML = '';
+                supplierPaymentsReportContainer.innerHTML = '';
+                supplierPurchasesReportContainer.innerHTML = '';
+                productProfitabilityReportContainer.innerHTML = '';
+                lowStockReportContainer.innerHTML = '';
+                expiryReportContainer.innerHTML = '';
+                salesReportContainer.innerHTML = '';
+            } catch (error) {
+                showToast(`خەلەتی د چونە دەرڤە دا: ${error.message}`, 'danger');
+            }
+        });
+
+        // --- Navigation Logic ---
+        homeIcons.forEach(icon => {
+            icon.addEventListener('click', () => {
+                const targetViewId = icon.getAttribute('data-target');
+                switchView(targetViewId);
+                
+                if (targetViewId === 'management-view') {
+                    // Data is already being watched by onSnapshot
+                    renderAdminList();
+                } else if (targetViewId === 'suppliers-view') {
+                    renderSuppliersList();
+                } else if (targetViewId === 'payments-view') {
+                    renderPaymentsList();
+                } else if (targetViewId === 'reports-view') {
+                    renderAllReports('all'); // default filter
+                }
+            });
+        });
+
+        backButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetViewId = button.getAttribute('data-target');
+                switchView(targetViewId);
+            });
+        });
+        
+        // --- Product Management (Firebase Integration) ---
+        function renderAdminList(searchText = '') {
+            productListContainer.innerHTML = '';
+            const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
+
+            if (filteredProducts.length === 0) {
+                productListContainer.innerHTML = '<p>چ بەرهەم نەهاتنە دیتن.</p>'; return;
+            }
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr>
+                    <th>بارکۆد</th><th>ناڤ</th><th>دابینکەر</th><th>جور</th><th>کەمى (دانە)</th><th>کارتون</th>
+                    <th>تاریخا خلاسبوونێ</th><th>ژ. وەجبێ</th><th class="price-col purchase">بهایێ کرینێ</th>
+                    <th class="price-col selling">بهایێ فرۆتنێ</th><th class="price-col profit">قازانج</th><th>کریار</th>
+                </tr></thead>
+                <tbody>${filteredProducts.map(p => {
+                    const profit = (parseInt(p.sellingPrice) - parseInt(p.purchasePrice)) || 0;
+                    return `
+                    <tr>
+                        <td>${p.barcode}</td><td>${p.name}</td><td>${p.supplier || 'N/A'}</td><td>${p.category}</td><td>${p.quantity}</td>
+                        <td>${p.cartons || 'N/A'}</td><td>${p.expiryDate}</td><td>${p.batchNumber || 'N/A'}</td>
+                        <td class="price-col purchase">${formatCurrency(p.purchasePrice)}</td>
+                        <td class="price-col selling">${formatCurrency(p.sellingPrice)}</td>
+                        <td class="price-col profit">${formatCurrency(profit)}</td>
+                        <td>
+                           <button class="action-btn edit-btn" data-docid="${p.id}" data-barcode="${p.barcode}">&#9998;</button>
+                           <button class="action-btn delete-btn" data-docid="${p.id}" data-barcode="${p.barcode}">&#10005;</button>
+                        </td>
+                    </tr>`
+                }).join('')}
+                </tbody>`;
+            productListContainer.appendChild(table);
+        }
+
+        addProductForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const barcode = barcodeInput.value;
+            const productName = document.getElementById('product-name').value;
+            const productPurchasePrice = document.getElementById('product-purchase-price').value;
+            const productSellingPrice = document.getElementById('product-selling-price').value;
+            const productCategory = document.getElementById('product-category').value;
+            const productQuantity = document.getElementById('product-quantity').value;
+            const productCartons = document.getElementById('product-cartons').value;
+            const productExpiryDate = document.getElementById('product-expiry-date').value;
+            const productBatchNumber = document.getElementById('product-batch-number').value;
+            const productSupplier = productSupplierDropdown.value;
+
+            const productData = {
+                barcode: barcode, name: productName,
+                purchasePrice: parseInt(productPurchasePrice),
+                sellingPrice: parseInt(productSellingPrice),
+                category: productCategory, quantity: parseInt(productQuantity),
+                cartons: parseInt(productCartons) || 0, expiryDate: productExpiryDate,
+                batchNumber: productBatchNumber, supplier: productSupplier
+            };
+            
+            try {
+                if (currentBarcodeDocId) {
+                    // Update existing product
+                    if (confirm(`ئەڤ بەرهەمە ب ناڤێ "${productName}" ژ بەری نها هاتیە تۆمارکرن. ئەرێ دێ داتایێن وێ نویکەی؟ (کەمیا نوو دێ ل شûna کەمیا کەڤن هێت)`)) {
+                        await db.collection('products').doc(currentBarcodeDocId).update(productData);
+                        showToast('داتایێن بەرهەمی هاتنە نویکرن');
+                    }
+                } else {
+                    // Add new product
+                    // Check if barcode already exists for a new product
+                    const existingProduct = products.find(p => p.barcode === barcode);
+                    if (existingProduct) {
+                         showToast('ئەڤ بارکۆدە ژ بەری نوکە بۆ بەرهەمەکێ دی هاتیە تۆمارکرن!', 'danger');
+                         return;
+                    }
+                    await db.collection('products').add(productData);
+                    showToast('بەرهەم ب سەرکەفتی هـاتە زێـدەکرن');
+                }
+                addProductForm.reset();
+                currentBarcodeDocId = null; // Reset for next add/edit
+                barcodeInput.readOnly = false; // Enable barcode input again
+            } catch (error) {
+                showToast(`خەلەتی: ${error.message}`, 'danger');
+                console.error("Error adding/updating product:", error);
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => { renderAdminList(e.target.value); });
+
+        productListContainer.addEventListener('click', async e => {
+            const target = e.target.closest('.action-btn'); if (!target) return;
+            const docId = target.getAttribute('data-docid');
+            const barcode = target.getAttribute('data-barcode');
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('تو پشتراستی دخوازی ڤی بەرهەمی ژێببەی؟')) {
+                    try {
+                        await db.collection('products').doc(docId).delete();
+                        showToast('بەرهەم هاتە ژێبرن', 'danger');
+                    } catch (error) {
+                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
+                        console.error("Error deleting product:", error);
+                    }
+                }
+            } else if (target.classList.contains('edit-btn')) {
+                const productToEdit = products.find(p => p.id === docId);
+                if (!productToEdit) return;
+
+                barcodeInput.value = productToEdit.barcode;
+                document.getElementById('product-name').value = productToEdit.name;
+                document.getElementById('product-purchase-price').value = productToEdit.purchasePrice;
+                document.getElementById('product-selling-price').value = productToEdit.sellingPrice;
+                document.getElementById('product-category').value = productToEdit.category;
+                document.getElementById('product-quantity').value = productToEdit.quantity;
+                document.getElementById('product-cartons').value = productToEdit.cartons;
+                document.getElementById('product-expiry-date').value = productToEdit.expiryDate;
+                document.getElementById('product-batch-number').value = productToEdit.batchNumber;
+                productSupplierDropdown.value = productToEdit.supplier;
+
+                currentBarcodeDocId = docId; // Store doc ID for update
+                barcodeInput.readOnly = true; // Prevent changing barcode during edit
+
+                showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی و "تۆمارکرن"ێ کلیک بکەی');
+                window.scrollTo(0, 0);
+            }
+        });
+
+        // --- Supplier Management (Firebase Integration) ---
+        function renderSuppliersList() {
+            supplierListContainer.innerHTML = '';
+             if (suppliers.length === 0) {
+                supplierListContainer.innerHTML = '<p>چ دابینکەر نەهاتنە تۆمارکرن.</p>'; return;
+            }
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>ناڤێ دابینکەری</th><th>زانیاریێن پەیوەندیێ</th><th>کریار</th></tr></thead>
+                <tbody>
+                    ${suppliers.map(sup => `
+                        <tr>
+                            <td>${sup.name}</td><td>${sup.contact || 'N/A'}</td>
+                            <td><button class="action-btn delete-btn" data-docid="${sup.id}">&#10005;</button></td>
+                        </tr>`).join('')}
+                </tbody>`;
+            supplierListContainer.appendChild(table);
+        }
+
+        function populateSuppliersDropdowns() {
+            const currentProductSupplier = productSupplierDropdown.value;
+            const currentPaymentSupplier = paymentSupplierDropdown.value;
+            productSupplierDropdown.innerHTML = '<option value="">دابینکەرەکێ هەلبژێرە</option>';
+            paymentSupplierDropdown.innerHTML = '<option value="">دابینکەرەکێ هەلبژێرە</option>';
+            suppliers.forEach(sup => {
+                const option1 = document.createElement('option'); option1.value = sup.name; option1.textContent = sup.name;
+                const option2 = option1.cloneNode(true);
+                productSupplierDropdown.appendChild(option1);
+                paymentSupplierDropdown.appendChild(option2);
+            });
+            productSupplierDropdown.value = currentProductSupplier;
+            paymentSupplierDropdown.value = currentPaymentSupplier;
+        }
+        
+        addSupplierForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const name = document.getElementById('supplier-name').value;
+            const contact = document.getElementById('supplier-contact').value;
+            if (suppliers.find(s => s.name.toLowerCase() === name.toLowerCase())) {
+                showToast('ئەڤ دابینکەرە بەری نوکە هاتیە تۆمارکرن!', 'danger'); return;
+            }
+            try {
+                await db.collection('suppliers').add({ name, contact, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast('دابینکەر ب سەرکەفتی هاتە زێدەکرن');
+                addSupplierForm.reset();
+            } catch (error) {
+                showToast(`خەلەتی: ${error.message}`, 'danger');
+                console.error("Error adding supplier:", error);
+            }
+        });
+
+        supplierListContainer.addEventListener('click', async e => {
+            if (e.target.closest('.delete-btn')) {
+                const docId = e.target.closest('.delete-btn').getAttribute('data-docid');
+                const supplierToDelete = suppliers.find(s => s.id === docId);
+                if (!supplierToDelete) return;
+
+                if (confirm(`تو پشتراستی دخوازی دابینکەرێ "${supplierToDelete.name}" ژێببەی؟`)) {
+                    try {
+                        await db.collection('suppliers').doc(docId).delete();
+                        showToast('دabینکەر هاتە ژێبرن', 'danger');
+                    } catch (error) {
+                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
+                        console.error("Error deleting supplier:", error);
+                    }
+                }
+            }
+        });
+        
+        // --- Payment Management (Firebase Integration) ---
+        function renderPaymentsList() {
+            paymentListContainer.innerHTML = '';
+            const sortedPayments = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date));
+            if (sortedPayments.length === 0) {
+                paymentListContainer.innerHTML = '<p>چ پارەدان نەهاتنە تۆمارکرن.</p>'; return;
+            }
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>دابینکەر</th><th>کوژمێ پارەدانێ</th><th>رووژ</th><th>کریار</th></tr></thead>
+                <tbody>
+                    ${sortedPayments.map(p => `
+                        <tr>
+                            <td>${p.supplierName}</td>
+                            <td class="price-col purchase">${formatCurrency(p.amount)}</td>
+                            <td>${p.date}</td>
+                            <td><button class="action-btn delete-btn" data-docid="${p.id}">&#10005;</button></td>
+                        </tr>`).join('')}
+                </tbody>`;
+            paymentListContainer.appendChild(table);
+        }
+
+        addPaymentForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const paymentData = {
+                supplierName: document.getElementById('payment-supplier').value,
+                amount: parseInt(document.getElementById('payment-amount').value),
+                date: document.getElementById('payment-date').value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            try {
+                await db.collection('payments').add(paymentData);
+                showToast('پارەدان ب سەرکەفتی هاتە تۆمارکرن');
+                addPaymentForm.reset();
+            } catch (error) {
+                showToast(`خەلەتی: ${error.message}`, 'danger');
+                console.error("Error adding payment:", error);
+            }
+        });
+
+        paymentListContainer.addEventListener('click', async e => {
+            if (e.target.closest('.delete-btn')) {
+                const docId = e.target.closest('.delete-btn').getAttribute('data-docid');
+                if (confirm('تو پشتراستی دخوازی ڤێ پارەدانێ ژێببەی؟')) {
+                    try {
+                        await db.collection('payments').doc(docId).delete();
+                        showToast('پارەدان هاتە ژێبرن', 'danger');
+                    } catch (error) {
+                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
+                        console.error("Error deleting payment:", error);
+                    }
+                }
+            }
+        });
+
+        // --- Reports Section (Firebase Integration) ---
+        function renderAllReports(paymentFilter = 'all') {
+            renderDashboardSummary();
+            renderInventoryValueReport();
+            renderSupplierPaymentsReport(paymentFilter);
+            renderSupplierPurchasesReport();
+            renderProductProfitabilityReport();
+            renderLowStockReport();
+            renderNearExpiryReport();
+            renderSalesReport(); // Render sales report as well
+        }
+        
+        paymentReportFilters.addEventListener('click', e => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('#payment-report-filters .btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                const filter = e.target.getAttribute('data-filter');
+                renderSupplierPaymentsReport(filter);
+            }
+        });
+        
+        function renderDashboardSummary() {
+            const totalProducts = products.length;
+            const totalSuppliers = suppliers.length;
+            const totalPayments = payments.reduce((sum, p) => sum + parseInt(p.amount), 0);
+            const lowStockCount = products.filter(p => parseInt(p.quantity) <= 10).length;
+            const totalSalesRevenue = sales.reduce((sum, s) => sum + parseInt(s.totalAmount), 0);
+
+            const today = new Date();
+            const expiryLimitDate = new Date();
+            expiryLimitDate.setDate(today.getDate() + 30);
+            const nearExpiryCount = products.filter(p => {
+                if (!p.expiryDate) return false;
+                const expiryDate = new Date(p.expiryDate);
+                // Compare only date part
+                const pDate = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+                const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const limitDate = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
+                return pDate <= limitDate && pDate >= todayDate;
+            }).length;
+
+            dashboardSummaryContainer.innerHTML = `
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3>ژمارا بەرهەمان</h3>
+                        <div class="value">${totalProducts}</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>ژمارا دابینکەران</h3>
+                        <div class="value">${totalSuppliers}</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>کۆژمێ پارەدانان</h3>
+                        <div class="value">${formatCurrency(totalPayments)}</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>کۆژمێ گشتیێ فرۆشتنێ</h3>
+                        <div class="value">${formatCurrency(totalSalesRevenue)}</div>
+                    </div>
+                    <div class="dashboard-card">
+                        <h3>بەرهەمێن ستۆک کێم</h3>
+                        <div class="value">${lowStockCount}</div>
+                    </div>
+                     <div class="dashboard-card">
+                        <h3>بەرهەمێن نێزیک ب دوماهیک بێن</h3>
+                        <div class="value">${nearExpiryCount}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInventoryValueReport() {
+            const totalPurchaseValue = products.reduce((sum, p) => sum + (parseInt(p.purchasePrice || 0) * parseInt(p.quantity || 0)), 0);
+            const totalSellingValue = products.reduce((sum, p) => sum + (parseInt(p.sellingPrice || 0) * parseInt(p.quantity || 0)), 0);
+            const potentialProfit = totalSellingValue - totalPurchaseValue;
+            
+            inventoryValueReportContainer.innerHTML = `
+                <table style="text-align:center;">
+                    <thead><tr><th>جورێ بهای</th><th>کۆژمێ گشتی</th></tr></thead>
+                    <tbody>
+                        <tr><td>کۆژمێ گشتیێ کرینێ</td><td class="price-col purchase">${formatCurrency(totalPurchaseValue)}</td></tr>
+                        <tr><td>کۆژمێ گشتیێ فرۆتنێ</td><td class="price-col selling">${formatCurrency(totalSellingValue)}</td></tr>
+                        <tr><td>قازانجا چاوەرێکری</td><td class="price-col profit">${formatCurrency(potentialProfit)}</td></tr>
+                    </tbody>
+                </table>`;
+        }
+        
+        function renderSupplierPaymentsReport(filter) {
+            let filteredPayments = payments;
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            if (filter === 'today') {
+                filteredPayments = payments.filter(p => {
+                    const paymentDate = new Date(p.date);
+                    return paymentDate.getFullYear() === today.getFullYear() &&
+                           paymentDate.getMonth() === today.getMonth() &&
+                           paymentDate.getDate() === today.getDate();
+                });
+            } else if (filter === 'week') {
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday as start of week
+                filteredPayments = payments.filter(p => new Date(p.date) >= startOfWeek);
+            } else if (filter === 'month') {
+                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                filteredPayments = payments.filter(p => new Date(p.date) >= startOfMonth);
+            }
+
+            const report = filteredPayments.reduce((acc, p) => {
+                acc[p.supplierName] = (acc[p.supplierName] || 0) + parseInt(p.amount);
+                return acc;
+            }, {});
+
+            if (Object.keys(report).length === 0) {
+                supplierPaymentsReportContainer.innerHTML = '<p>چ پارەدان د ڤێ دەمێ دیارکری دا نەهاتینە دیتن.</p>'; return;
+            }
+            
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>دابینکەر (کۆمپانیا)</th><th>کۆژمێ گشتیێ پارەدانێ</th></tr></thead>
+                <tbody>
+                    ${Object.entries(report).sort(([,a],[,b]) => b-a).map(([name, total]) => `
+                        <tr><td>${name}</td><td class="price-col purchase">${formatCurrency(total)}</td></tr>`).join('')}
+                </tbody>`;
+            supplierPaymentsReportContainer.innerHTML = ''; 
+            supplierPaymentsReportContainer.appendChild(table);
+        }
+        
+        function renderSupplierPurchasesReport() {
+            const report = products.reduce((acc, p) => {
+                const purchaseValue = parseInt(p.purchasePrice || 0) * parseInt(p.quantity || 0);
+                if(p.supplier) {
+                    acc[p.supplier] = (acc[p.supplier] || 0) + purchaseValue;
+                }
+                return acc;
+            }, {});
+
+             if (Object.keys(report).length === 0) {
+                supplierPurchasesReportContainer.innerHTML = '<p>چ کرین ژ دابینکەران نەهاتینە تۆمارکرن.</p>'; return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>دابینکەر</th><th>کۆژمێ گشتیێ کرینێ</th></tr></thead>
+                <tbody>
+                    ${Object.entries(report).sort(([,a],[,b]) => b-a).map(([name, total]) => `
+                        <tr><td>${name}</td><td class="price-col purchase">${formatCurrency(total)}</td></tr>`).join('')}
+                </tbody>`;
+            supplierPurchasesReportContainer.innerHTML = '';
+            supplierPurchasesReportContainer.appendChild(table);
+        }
+
+        function renderProductProfitabilityReport() {
+            const profitableProducts = products.map(p => {
+                const profit = parseInt(p.sellingPrice || 0) - parseInt(p.purchasePrice || 0);
+                return { name: p.name, profit: profit };
+            }).filter(p => p.profit > 0)
+              .sort((a,b) => b.profit - a.profit);
+
+            if (profitableProducts.length === 0) {
+                productProfitabilityReportContainer.innerHTML = '<p>چ بەرهەم قازانجا وان دیار نینە.</p>'; return;
+            }
+            
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>ناڤێ بەرهەمی</th><th>قازانجا هەر دانەیەک</th></tr></thead>
+                <tbody>
+                    ${profitableProducts.map(p => `
+                        <tr><td>${p.name}</td><td class="price-col profit">${formatCurrency(p.profit)}</td></tr>`).join('')}
+                </tbody>`;
+            productProfitabilityReportContainer.innerHTML = '';
+            productProfitabilityReportContainer.appendChild(table);
+        }
+        
+        function renderLowStockReport() {
+            const LOW_STOCK_THRESHOLD = 10;
+            const lowStockProducts = products.filter(p => parseInt(p.quantity) <= LOW_STOCK_THRESHOLD)
+                                           .sort((a,b) => a.quantity - b.quantity);
+            if (lowStockProducts.length === 0) { lowStockReportContainer.innerHTML = '<p>چ بەرهەم ستۆکا وان کێم نینە.</p>'; return; }
+            const table = document.createElement('table');
+            table.innerHTML = `<thead><tr><th>ناڤ</th><th>کەمیا مای</th></tr></thead><tbody>
+                ${lowStockProducts.map(p => `<tr><td>${p.name}</td><td style="color:var(--danger-color); font-weight:bold;">${p.quantity}</td></tr>`).join('')}
+            </tbody>`;
+            lowStockReportContainer.innerHTML = ''; lowStockReportContainer.appendChild(table);
+        }
+
+        function renderNearExpiryReport() {
+            const today = new Date(); 
+            const upcomingDays = 30;
+            const expiryLimitDate = new Date(); expiryLimitDate.setDate(today.getDate() + upcomingDays);
+
+            const nearExpiryProducts = products.filter(p => { 
+                if (!p.expiryDate) return false;
+                const expiryDate = new Date(p.expiryDate); 
+                // Normalize dates to only compare day, month, year
+                const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+                const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const expiryLimitDateOnly = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
+
+                return expiryDateOnly <= expiryLimitDateOnly && expiryDateOnly >= todayDateOnly; 
+            }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+            if (nearExpiryProducts.length === 0) { expiryReportContainer.innerHTML = '<p>چ بەرهەم د 30 ڕۆژێن بهێت دا تاریخا وان ب دوماهیک ناهێت.</p>'; return; }
+            const table = document.createElement('table');
+            table.innerHTML = `<thead><tr><th>ناڤ</th><th>تاریخا خلاسبوونێ</th><th>ڕۆژێن ماین</th></tr></thead><tbody>
+                ${nearExpiryProducts.map(p => { 
+                    const expiryDate = new Date(p.expiryDate); 
+                    const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)); 
+                    return `<tr><td>${p.name}</td><td style="color:var(--danger-color); font-weight:bold;">${p.expiryDate}</td><td>${daysLeft} ڕۆژ</td></tr>`
+                }).join('')}
+            </tbody>`;
+            expiryReportContainer.innerHTML = ''; expiryReportContainer.appendChild(table);
+        }
+
+        function renderSalesReport() {
+            if (sales.length === 0) {
+                salesReportContainer.innerHTML = '<p>چ فرۆشتن تۆمارنەکراون.</p>';
+                return;
+            }
+
+            // Group sales by date for daily totals
+            const salesByDate = sales.reduce((acc, sale) => {
+                const saleDate = sale.timestamp ? new Date(sale.timestamp.toDate()).toLocaleDateString('ku-IQ') : new Date().toLocaleDateString('ku-IQ');
+                acc[saleDate] = (acc[saleDate] || 0) + sale.totalAmount;
+                return acc;
+            }, {});
+
+            let salesHtml = `
+                <h3>فرۆشتن بەپێی ڕۆژ</h3>
+                <table>
+                    <thead>
+                        <tr><th>ڕۆژ</th><th>کۆژمەی فرۆشتن</th></tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(salesByDate).sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA)).map(([date, total]) => `
+                            <tr><td>${date}</td><td class="price-col selling">${formatCurrency(total)}</td></tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <h3 style="margin-top: 2rem;">هەموو فرۆشتنەکان</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID فرۆشتن</th>
+                            <th>بکارهێنەر</th>
+                            <th>ژمارەی شتومەک</th>
+                            <th>کۆی گشتی</th>
+                            <th>کات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sales.sort((a, b) => (b.timestamp ? b.timestamp.toDate() : 0) - (a.timestamp ? a.timestamp.toDate() : 0)).map(s => `
+                            <tr>
+                                <td>${s.id}</td>
+                                <td>${s.cashier || 'نادیار'}</td>
+                                <td>${s.items.length}</td>
+                                <td class="price-col selling">${formatCurrency(s.totalAmount)}</td>
+                                <td>${s.timestamp ? new Date(s.timestamp.toDate()).toLocaleString('ku-IQ') : 'نادیار'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            salesReportContainer.innerHTML = salesHtml;
+        }
+
+        // --- Barcode Scanner Logic ---
+        let isScannerActive = false;
+        function startScanner() {
+            scannerContainer.style.display = 'block';
+            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader", "upc_reader", "code_39_reader"] } }, (err) => { 
+                if (err) { showToast('خەلەتی: نەشیا کامیرێ ڤەکەت', 'danger'); console.error(err); return; } 
+                Quagga.start(); isScannerActive = true; 
+            });
+        }
+        function stopScanner() { 
+            if (isScannerActive) { 
+                Quagga.stop(); 
+                isScannerActive = false; 
+                scannerContainer.style.display = 'none'; 
+            } 
+        }
+        scanBtn.addEventListener('click', () => { 
+            if (!isScannerActive) { 
+                startScanner(); 
+            } else { 
+                stopScanner(); 
+            } 
+        });
+        stopScanBtn.addEventListener('click', stopScanner);
+        Quagga.onDetected(result => { 
+            const code = result.codeResult.code; 
+            barcodeInput.value = code; 
+            showToast(`بارکۆد هاتە خواندن: ${code}`); 
+            stopScanner(); 
+
+            // Automatically load product data if barcode exists
+            const existingProduct = products.find(p => p.barcode === code);
+            if (existingProduct) {
+                // Simulate clicking edit button
+                const editButton = productListContainer.querySelector(`button[data-barcode="${code}"][data-docid="${existingProduct.id}"]`);
+                if(editButton) {
+                    editButton.click();
+                } else {
+                    // Fallback to manual fill if button not found (e.g., search filtered it out)
+                    document.getElementById('product-name').value = existingProduct.name;
+                    document.getElementById('product-purchase-price').value = existingProduct.purchasePrice;
+                    document.getElementById('product-selling-price').value = existingProduct.sellingPrice;
+                    document.getElementById('product-category').value = existingProduct.category;
+                    document.getElementById('product-quantity').value = existingProduct.quantity;
+                    document.getElementById('product-cartons').value = existingProduct.cartons;
+                    document.getElementById('product-expiry-date').value = existingProduct.expiryDate;
+                    document.getElementById('product-batch-number').value = existingProduct.batchNumber;
+                    productSupplierDropdown.value = existingProduct.supplier;
+                    currentBarcodeDocId = existingProduct.id;
+                    barcodeInput.readOnly = true;
+                    showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی و "تۆمارکرن"ێ کلیک بکەی');
+                    window.scrollTo(0, 0);
+                }
+            }
+        });
+        
+        // --- Firebase Real-time Listeners (onSnapshot) ---
+        function setupFirestoreListeners() {
+            db.collection('products').onSnapshot(snapshot => {
+                products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAdminList(searchInput.value);
+                populateSuppliersDropdowns(); // Update dropdowns as products might change supplier names
+                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+            }, error => {
+                console.error("Error fetching products:", error);
+                showToast('خەلەتی د وەرگرتنا بەرهەمان دا.', 'danger');
+            });
+
+            db.collection('suppliers').onSnapshot(snapshot => {
+                suppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderSuppliersList();
+                populateSuppliersDropdowns();
+                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+            }, error => {
+                console.error("Error fetching suppliers:", error);
+                showToast('خەلەتی د وەرگرتنا دابینکەران دا.', 'danger');
+            });
+
+            db.collection('payments').onSnapshot(snapshot => {
+                payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderPaymentsList();
+                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+            }, error => {
+                console.error("Error fetching payments:", error);
+                showToast('خەلەتی د وەرگرتنا پارەدانان دا.', 'danger');
+            });
+
+            db.collection('sales').onSnapshot(snapshot => {
+                sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+            }, error => {
+                console.error("Error fetching sales:", error);
+                showToast('خەلەتی د وەرگرتنا فرۆشتنەکان دا.', 'danger');
+            });
+        }
+
+        function loadInitialDataAndReports() {
+            setupFirestoreListeners();
+            document.getElementById('payment-date').valueAsDate = new Date();
+        }
+
+        // Initial app setup (auth state listener handles view switching)
+        // initializeApp(); // No need, auth.onAuthStateChanged does this.
+    });
+    </script>
+</body>
+</html>
