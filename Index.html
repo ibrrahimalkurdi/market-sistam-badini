@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستەما کاشێر - خالا فرۆشتنێ</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #007f5f; /* A bit greener for POS */
+            --secondary-color: #38a3a5;
+            --accent-color: #83e85a;
+            --danger-color: #d62828;
+            --success-color: #2a9d8f;
+            --background-color: #e0f2f7; /* Lighter background */
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', -apple-system, sans-serif;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            font-size: 15px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            box-shadow: var(--box-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header #cashier-info { font-size: 0.9rem; }
+        main { 
+            flex-grow: 1;
+            padding: 1.5rem; 
+            max-width: 1400px; 
+            margin: 1.5rem auto; 
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            width: 100%;
+        }
+        @media (min-width: 992px) {
+            main { grid-template-columns: 2fr 1fr; }
+        }
+        .pos-section {
+            background-color: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        h2 {
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--primary-color);
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(0, 127, 95, 0.2);
+        }
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 0.2rem;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn.danger { background-color: var(--danger-color); }
+        .btn.success { background-color: var(--success-color); }
+
+        .barcode-input-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+        #product-search-input { flex-grow: 1; }
+        
+        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; }
+        #scanner-container .viewport, #scanner-container video { width: 100%; }
+
+        #product-search-results {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        .search-result-item {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .search-result-item:hover { background-color: #f0f8ff; }
+        .search-result-item span { flex: 1; }
+        .search-result-item .add-to-cart-btn {
+            background-color: var(--success-color);
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        #cart-items {
+            margin-top: 1.5rem;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-details .item-name { font-weight: bold; }
+        .cart-item-details .item-price { font-size: 0.9rem; color: #555; }
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 1rem;
+        }
+        .cart-item-quantity input { width: 50px; text-align: center; padding: 0.4rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; }
+        .cart-item-actions button {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--danger-color);
+            padding: 0 0.5rem;
+        }
+
+        .cart-summary {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--secondary-color);
+            font-size: 1.1rem;
+        }
+        .cart-summary div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+        }
+        .cart-summary .total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        #login-view { max-width: 400px; margin: 5rem auto; text-align: center; }
+        
+        #toast {
+            position: fixed; bottom: -100px; left: 50%;
+            transform: translateX(-50%); background-color: var(--success-color); color: white;
+            padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: bottom 0.5s ease; z-index: 1000; width: 90%; max-width: 500px; text-align: center;
+        }
+        #toast.danger { background-color: var(--danger-color); }
+        #toast.info { background-color: #007bff; }
+        #toast.show { bottom: 20px; }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .header-controls .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>سیستەما کاشێر</h1>
+        <div class="header-controls">
+            <span id="cashier-info" style="color: white;">کاشێر: نادیار</span>
+            <button id="logout-btn" class="btn danger">چوونا دەرڤە</button>
+        </div>
+    </header>
+    
+    <main>
+        <!-- بەشێ لۆگینێ -->
+        <section id="login-view" class="view active">
+            <div class="pos-section">
+                <h2>چوونا ژۆر (کاشێر)</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email">ئیمەیل:</label>
+                        <input type="email" id="email" required value="cashier@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">پاسۆرد:</label>
+                        <input type="password" id="password" required value="cashier123">
+                    </div>
+                    <button type="submit" class="btn">داخلبوون</button>
+                     <button type="button" id="create-cashier-user" class="btn" style="background-color: #17a2b8; margin-top: 10px;">درستکرنا کاشێرێ نوو</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- دیمەنێ سەرەکیێ فرۆشتنێ -->
+        <section id="pos-view" class="view">
+            <div class="pos-section">
+                <h2>لێگەریان و زێدەکرنا بەرهەمان</h2>
+                <div class="barcode-input-group">
+                    <input type="text" id="barcode-scanner-input" placeholder="بارکۆدێ بنڤیسە یان سکان بکە">
+                    <button type="button" id="scan-barcode-btn" class="btn">&#128247; سکان</button>
+                </div>
+                <div id="scanner-container" style="display:none;">
+                    <div id="interactive" class="viewport"></div>
+                    <button type="button" id="stop-scan-btn" class="btn danger" style="width:100%; margin-top:0.5rem;">راوەستاندن</button>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="product-search-input" placeholder="لێگەریان ل گۆر ناڤێ بەرهەمی...">
+                </div>
+                <div id="product-search-results">
+                    <!-- Search results will be displayed here -->
+                </div>
+            </div>
+
+            <div class="pos-section">
+                <h2>عەرەبانەیا فرۆشتنێ</h2>
+                <div id="cart-items">
+                    <!-- Cart items will be displayed here -->
+                </div>
+                <div class="cart-summary">
+                    <div>
+                        <span>کۆی گشتی:</span>
+                        <span id="total-amount" class="total-amount">0 <small>دینار</small></span>
+                    </div>
+                    <button id="process-sale-btn" class="btn success" style="width: 100%; margin-top: 1rem;">تۆمارکرنا فرۆشتنێ</button>
+                    <button id="clear-cart-btn" class="btn danger" style="width: 100%; margin-top: 0.5rem;">ڤالاکرنا عەرەبانەیێ</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+    // --- Firebase Configuration ---
+    // پێویستە ئەم بەشە بە زانیارییەکانی پڕۆژەی Firebase ی خۆت پڕ بکەیتەوە
+    const FIREBASE_CONFIG 
+
+= {
+
+apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
+  authDomain: "ibrrahim-alkurdi.firebaseapp.com",
+  projectId: "ibrrahim-alkurdi",
+  storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
+  messagingSenderId: "490128006332",
+  appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
+  measurementId: "G-Q4VWN89L3R"
+
+
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const createCashierUserBtn = document.getElementById('create-cashier-user');
+        const logoutBtn = document.getElementById('logout-btn');
+        const cashierInfoSpan = document.getElementById('cashier-info');
+
+        const allViews = document.querySelectorAll('.view');
+        const toast = document.getElementById('toast');
+        
+        // POS Elements
+        const barcodeScannerInput = document.getElementById('barcode-scanner-input');
+        const scanBtn = document.getElementById('scan-barcode-btn');
+        const stopScanBtn = document.getElementById('stop-scan-btn');
+        const scannerContainer = document.getElementById('scanner-container');
+        const productSearchInput = document.getElementById('product-search-input');
+        const productSearchResults = document.getElementById('product-search-results');
+        const cartItemsContainer = document.getElementById('cart-items');
+        const totalAmountSpan = document.getElementById('total-amount');
+        const processSaleBtn = document.getElementById('process-sale-btn');
+        const clearCartBtn = document.getElementById('clear-cart-btn');
+
+        // --- Global Data Arrays and State ---
+        let allProducts = []; // All products from Firestore
+        let cart = [];      // Items currently in the cart
+        let currentCashier = null; // Currently logged-in cashier's email or ID
+
+        // --- Utility Functions ---
+        function showToast(message, type = 'success') {
+            toast.textContent = message; toast.className = type; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function switchView(viewId) {
+            allViews.forEach(v => v.classList.remove('active'));
+            const newView = document.getElementById(viewId);
+            if (newView) newView.classList.add('active');
+        }
+
+        // Helper function to format currency
+        function formatCurrency(number) {
+            return parseInt(number || 0).toLocaleString() + ' <small>دینار</small>';
+        }
+
+        // --- Firebase Auth Listener ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // User is signed in. Check their role.
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (doc.exists && (doc.data().role === 'cashier' || doc.data().role === 'admin')) {
+                        currentCashier = user.email; // Store cashier's email
+                        cashierInfoSpan.textContent = `کاشێر: ${currentCashier}`;
+                        switchView('pos-view');
+                        showToast(`ب خێرهاتی، کاشێر ${currentCashier}`);
+                        loadInitialData(); // Start listening for product changes
+                        barcodeScannerInput.focus(); // Focus on barcode input for quick scanning
+                    } else {
+                        showToast('تو ڕێگەپێدراو نینین بۆ چونە ژوورەوە وەک کاشێر.', 'danger');
+                        auth.signOut(); // Log out unauthorized user
+                    }
+                }).catch(error => {
+                    console.error("Error getting user role:", error);
+                    showToast('خەلەتی د وەرگرتنا ڕۆڵا بکارهێنەری دا.', 'danger');
+                    auth.signOut();
+                });
+            } else {
+                // User is signed out.
+                currentCashier = null;
+                cashierInfoSpan.textContent = 'کاشێر: نادیار';
+                switchView('login-view');
+                clearCart(); // Clear cart on logout
+                // Stop listening to Firestore to prevent unauthorized data access
+                if (productsUnsubscribe) productsUnsubscribe(); 
+            }
+        });
+
+        // --- Authentication Logic ---
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                // auth.onAuthStateChanged listener will handle view switching and role check
+            } catch (error) {
+                showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger');
+            }
+        });
+
+        createCashierUserBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showToast('تکایە ئیمەیل و پاسۆردێ بنویسە بۆ دروستکرنا کاشێر.', 'danger');
+                return;
+            }
+
+            if (!confirm(`ئەرێ دخوازی ئەکاونتەکێ نوی دروست بکەی بۆ کاشێر ب ئیمەیلێ: ${email}؟`)) {
+                return;
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                // Set cashier role in Firestore for the new user
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    email: email,
+                    role: 'cashier', // Assign cashier role
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('ئەکاونتێ کاشێر ب سەرکەفتی هاتە دروستکرن. نوکە دشێی داخل ببی.', 'success');
+                emailInput.value = '';
+                passwordInput.value = '';
+            } catch (error) {
+                showToast(`خەلەتی د دروستکرنا ئەکاونتی دا: ${error.message}`, 'danger');
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                showToast('ب سەرکەفتی چوویە دەرڤە.', 'success');
+            } catch (error) {
+                showToast(`خەلەتی د چونە دەرڤە دا: ${error.message}`, 'danger');
+            }
+        });
+
+        // --- Product Search and Cart Management ---
+        function renderSearchResults(searchText) {
+            productSearchResults.innerHTML = '';
+            // Filter products that have enough quantity (more than 0)
+            const availableProducts = allProducts.filter(p => (p.quantity || 0) > 0);
+
+            const filtered = availableProducts.filter(p => 
+                p.name.toLowerCase().includes(searchText.toLowerCase()) || 
+                p.barcode.includes(searchText)
+            ).slice(0, 10); // Limit to 10 results
+
+            if (filtered.length === 0) {
+                productSearchResults.innerHTML = '<p style="padding: 1rem;">چ بەرهەم نەهاتنە دیتن یان ستۆکا وان تەواو نیە.</p>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const div = document.createElement('div');
+                div.classList.add('search-result-item');
+                div.innerHTML = `
+                    <span>${p.name} (بارکۆد: ${p.barcode}) - ${formatCurrency(p.sellingPrice)}</span>
+                    <button class="btn add-to-cart-btn" data-product-id="${p.id}">زێدەکرن</button>
+                `;
+                productSearchResults.appendChild(div);
+            });
+        }
+
+        productSearchInput.addEventListener('input', (e) => {
+            const searchText = e.target.value.trim();
+            if (searchText.length > 1) { // Start searching after 1 character
+                renderSearchResults(searchText);
+            } else {
+                productSearchResults.innerHTML = '';
+            }
+        });
+
+        productSearchResults.addEventListener('click', (e) => {
+            const target = e.target.closest('.add-to-cart-btn');
+            if (target) {
+                const productId = target.getAttribute('data-product-id');
+                const product = allProducts.find(p => p.id === productId);
+                if (product) {
+                    addItemToCart(product);
+                }
+            }
+        });
+
+        // Event listener for manual barcode input (e.g., typing and pressing Enter)
+        barcodeScannerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent default form submission
+                const barcode = barcodeScannerInput.value.trim();
+                const product = allProducts.find(p => p.barcode === barcode);
+                if (product) {
+                    addItemToCart(product);
+                    barcodeScannerInput.value = ''; // Clear input after adding
+                } else {
+                    showToast('بەرهەم ب ڤی بارکۆدێ نەهاتە دیتن.', 'danger');
+                }
+            }
+        });
+
+        // Adds a product to the cart, handling quantity updates and stock checks
+        function addItemToCart(product) {
+            const existingCartItemIndex = cart.findIndex(item => item.id === product.id);
+            const availableStock = product.quantity || 0; // Ensure quantity is treated as number, default to 0
+
+            if (existingCartItemIndex > -1) {
+                // Item is already in cart, increase quantity
+                const currentCartQuantity = cart[existingCartItemIndex].quantity;
+                if (currentCartQuantity < availableStock) {
+                    cart[existingCartItemIndex].quantity++;
+                    showToast(`${product.name} دانەیەک زێدەکرن بۆ عەرەبانەیێ.`, 'success');
+                } else {
+                    showToast(`ستۆکێ تەواو نینە بۆ ${product.name}! تەنها ${availableStock} دانە مایە.`, 'danger');
+                }
+            } else {
+                // New item to cart, add with quantity 1
+                if (availableStock > 0) {
+                    cart.push({ ...product, quantity: 1 });
+                    showToast(`${product.name} ب سەرکەفتی هاتە زێدەکرن بۆ عەرەبانەیێ.`, 'success');
+                } else {
+                    showToast(`${product.name} ژ ستۆکێ نەماوە! ناتوانی زێدەی بکەی.`, 'danger');
+                }
+            }
+            renderCart();
+        }
+
+        // Renders all items in the cart and updates the total amount
+        function renderCart() {
+            cartItemsContainer.innerHTML = '';
+            let totalAmount = 0;
+
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">عەرەبانە ڤالایە.</p>';
+            } else {
+                // Rebuild cart to ensure consistency with latest product data and clean up invalid items
+                const updatedCart = [];
+                for (const item of cart) {
+                    const actualProduct = allProducts.find(p => p.id === item.id);
+                    if (!actualProduct) {
+                        // Product no longer exists, remove from cart
+                        showToast(`${item.name} ژ بەرهەمان نەماوە و ژ عەرەبانەیێ هاتە ژێبرن.`, 'info');
+                        continue;
+                    }
+
+                    const availableStock = actualProduct.quantity || 0;
+                    if (item.quantity > availableStock) {
+                        item.quantity = availableStock; // Adjust quantity to max available stock
+                        if (item.quantity === 0) {
+                            showToast(`ستۆکێ ${item.name} ب دوماهیک هات، ژ عەرەبانەیێ هاتە ژێبرن.`, 'info');
+                            continue; // Remove from cart if stock is zero
+                        }
+                        showToast(`کەمیا ${item.name} د عەرەبانەیێ دا هاتە کێمکرن بۆ ${availableStock} ژبەر کێمبوونا ستۆکێ.`, 'info');
+                    }
+                    if (item.quantity < 1) { // Ensure quantity is at least 1 if product still exists
+                         item.quantity = 1;
+                    }
+                    updatedCart.push(item);
+
+                    const div = document.createElement('div');
+                    div.classList.add('cart-item');
+                    const itemTotalPrice = item.sellingPrice * item.quantity;
+                    totalAmount += itemTotalPrice;
+
+                    div.innerHTML = `
+                        <div class="cart-item-details">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-price">${formatCurrency(item.sellingPrice)} x ${item.quantity} = ${formatCurrency(itemTotalPrice)}</div>
+                        </div>
+                        <div class="cart-item-quantity">
+                            <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;" data-action="decrease" data-product-id="${item.id}">-</button>
+                            <input type="number" value="${item.quantity}" min="1" max="${availableStock}" data-product-id="${item.id}" class="quantity-input">
+                            <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;" data-action="increase" data-product-id="${item.id}">+</button>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button data-action="remove" data-product-id="${item.id}">&#10005;</button>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(div);
+                }
+                cart = updatedCart; // Update the main cart array
+            }
+            totalAmountSpan.innerHTML = formatCurrency(totalAmount);
+        }
+
+        // Event listener for quantity changes and item removal in the cart
+        cartItemsContainer.addEventListener('click', (e) => {
+            const target = e.target;
+            const productId = target.getAttribute('data-product-id');
+            const action = target.getAttribute('data-action');
+
+            if (!productId) return;
+
+            const cartItemIndex = cart.findIndex(item => item.id === productId);
+            if (cartItemIndex === -1) return;
+
+            const productInCart = cart[cartItemIndex];
+            const actualProduct = allProducts.find(p => p.id === productId);
+            const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
+
+            if (action === 'increase') {
+                if (productInCart.quantity < availableStock) {
+                    productInCart.quantity++;
+                    showToast(`دانەیەکی ${productInCart.name} زێدەبوو.`, 'success');
+                } else {
+                    showToast(`ستۆکێ تەواو نینە بۆ ${productInCart.name}! تەنها ${availableStock} دانە مایە.`, 'danger');
+                }
+            } else if (action === 'decrease') {
+                if (productInCart.quantity > 1) {
+                    productInCart.quantity--;
+                    showToast(`دانەیەکی ${productInCart.name} کەم بووەوە.`, 'info');
+                } else {
+                    showToast('ژمارەی بەرهەم ناتوانرێت لە 1 کەمتر بێت، تکایە بسڕەوە ئەگەر ناتەوێت.', 'danger');
+                }
+            } else if (action === 'remove') {
+                if (confirm(`ئەرێ دخوازی "${productInCart.name}" ژ عەرەبانەیێ ژێببەی؟`)) {
+                    cart.splice(cartItemIndex, 1);
+                    showToast(`${productInCart.name} ژ عەرەبانەیێ هاتە ژێبرن.`, 'danger');
+                }
+            }
+            renderCart();
+        });
+
+        // Event listener for direct input of quantity in the cart
+        cartItemsContainer.addEventListener('change', (e) => {
+            const target = e.target;
+            if (target.classList.contains('quantity-input')) {
+                const productId = target.getAttribute('data-product-id');
+                let newQuantity = parseInt(target.value);
+
+                const cartItemIndex = cart.findIndex(item => item.id === productId);
+                if (cartItemIndex === -1) return;
+
+                const actualProduct = allProducts.find(p => p.id === productId);
+                const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
+
+                if (isNaN(newQuantity) || newQuantity < 1) {
+                    newQuantity = 1; // Default to 1 if invalid
+                    showToast('ژمارەیەکی دروست بۆ کەمیا بەرهەمێ بنویسە (لانی کێم 1).', 'danger');
+                }
+                if (newQuantity > availableStock) {
+                    newQuantity = availableStock; // Prevent quantity more than available stock
+                    showToast(`تەنها ${availableStock} دانە لەم بەرهەمە لە ستۆکدا ماوە. ژمارەکە گۆڕدرا.`, 'danger');
+                }
+                cart[cartItemIndex].quantity = newQuantity;
+                target.value = newQuantity; // Update input field to corrected value
+                renderCart();
+            }
+        });
+
+
+        // Processes the sale, updates stock, and records the transaction
+        processSaleBtn.addEventListener('click', async () => {
+            if (cart.length === 0) {
+                showToast('عەرەبانە ڤالایە، ناتوانی فرۆشتن تۆمار بکەی.', 'danger');
+                return;
+            }
+
+            // Final check on stock before processing sale
+            for (const item of cart) {
+                const actualProduct = allProducts.find(p => p.id === item.id);
+                const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
+                if (item.quantity > availableStock) {
+                    showToast(`ناتوانی فرۆشتنەکە ئەنجام بدەی: کەمیا "${item.name}" لە ستۆکدا بەس نیە (${availableStock} مایە).`, 'danger');
+                    renderCart(); // Re-render to update quantities
+                    return;
+                }
+            }
+
+            const currentTotalAmount = cart.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
+            const confirmMessage = `ئەرێ دخوازی ڤێ فرۆشتنێ تۆمار بکەی؟ کۆی گشتی: ${formatCurrency(currentTotalAmount).replace('<small>دینار</small>', ' دینار')}`;
+            
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                const saleItems = cart.map(item => ({
+                    productId: item.id,
+                    barcode: item.barcode,
+                    name: item.name,
+                    quantity: item.quantity,
+                    sellingPrice: item.sellingPrice,
+                    totalItemPrice: item.sellingPrice * item.quantity
+                }));
+
+                // Record the sale
+                await db.collection('sales').add({
+                    items: saleItems,
+                    totalAmount: currentTotalAmount,
+                    cashier: currentCashier, // Store who made the sale
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Update product quantities in Firestore using a batch write for atomicity
+                const batch = db.batch();
+                for (const item of cart) {
+                    const productRef = db.collection('products').doc(item.id);
+                    batch.update(productRef, {
+                        quantity: firebase.firestore.FieldValue.increment(-item.quantity)
+                    });
+                }
+                await batch.commit();
+
+                showToast('فرۆشتن ب سەرکەفتی هاتە تۆمارکرن و ستۆک نویکرایەوە!', 'success');
+                clearCart();
+            } catch (error) {
+                showToast(`خەلەتی د تۆمارکرنا فرۆشتنێ دا: ${error.message}`, 'danger');
+                console.error("Error processing sale:", error);
+            }
+        });
+
+        // Clears all items from the cart
+        clearCartBtn.addEventListener('click', () => {
+            if (cart.length > 0) {
+                if (confirm('ئەرێ دخوازی هەمی بەرهەمێن د عەرەبانەیێ دا ڤالا بکەی؟')) {
+                    clearCart();
+                    showToast('عەرەبانە ب سەرکەفتی هاتە ڤالاکرن.', 'danger');
+                }
+            } else {
+                showToast('عەرەبانە بەری نوکە ڤالایە.', 'info');
+            }
+        });
+
+        // Resets the cart and related UI elements
+        function clearCart() {
+            cart = [];
+            renderCart();
+            productSearchInput.value = '';
+            productSearchResults.innerHTML = '';
+            barcodeScannerInput.value = ''; // Clear barcode input
+            barcodeScannerInput.focus(); // Keep focus for next scan
+        }
+
+        // --- Barcode Scanner Logic ---
+        let isScannerActive = false;
+        function startScanner() {
+            scannerContainer.style.display = 'block';
+            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader", "upc_reader", "code_39_reader"] } }, (err) => { 
+                if (err) { 
+                    showToast('خەلەتی: نەشیا کامیرێ ڤەکەت. دڵنیا بە کامێرا بەردەست بێت و مۆڵەتی پێ درابێت.', 'danger'); 
+                    console.error(err); 
+                    scannerContainer.style.display = 'none'; // Hide scanner if error
+                    return; 
+                } 
+                Quagga.start(); 
+                isScannerActive = true; 
+                showToast('سکانەر چالاک کرا، بارکۆدێ بخوێنە.', 'info');
+            });
+        }
+        function stopScanner() { 
+            if (isScannerActive) { 
+                Quagga.stop(); 
+                isScannerActive = false; 
+                scannerContainer.style.display = 'none'; 
+                showToast('سکانەر ڕاگیرا.', 'info');
+                barcodeScannerInput.focus(); // Focus back to input after stopping
+            } 
+        }
+        scanBtn.addEventListener('click', () => { 
+            if (!isScannerActive) { 
+                startScanner(); 
+            } else { 
+                stopScanner(); 
+            } 
+        });
+        stopScanBtn.addEventListener('click', stopScanner);
+
+        // Quagga.js detected barcode event
+        Quagga.onDetected(result => { 
+            const code = result.codeResult.code; 
+            barcodeScannerInput.value = code; // Display the scanned code
+            showToast(`بارکۆد هاتە خواندن: ${code}`, 'success'); 
+            stopScanner(); // Stop scanner after successful scan
+
+            // Automatically add to cart if product found
+            const product = allProducts.find(p => p.barcode === code);
+            if (product) {
+                addItemToCart(product);
+                barcodeScannerInput.value = ''; // Clear input after adding
+            } else {
+                showToast('بەرهەم ب ڤی بارکۆدێ نەهاتە دیتن.', 'danger');
+            }
+            barcodeScannerInput.focus(); // Ensure input is focused for next action
+        });
+        
+        // --- Firebase Real-time Listener (onSnapshot) ---
+        let productsUnsubscribe; // To store the unsubscribe function for products
+
+        // Loads initial data (products) and sets up a real-time listener
+        function loadInitialData() {
+            // Unsubscribe from previous listener if it exists
+            if (productsUnsubscribe) {
+                productsUnsubscribe();
+            }
+
+            // Subscribe to real-time updates for products
+            productsUnsubscribe = db.collection('products').onSnapshot(snapshot => {
+                allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Update cart based on new stock data (important for accurate calculations)
+                renderCart(); 
+                // Clear search results as products might have changed (e.g., stock reduced)
+                if (productSearchInput.value.trim().length > 1) {
+                    renderSearchResults(productSearchInput.value);
+                } else {
+                    productSearchResults.innerHTML = '';
+                }
+            }, error => {
+                console.error("Error fetching products:", error);
+                showToast('خەلەتی د وەرگرتنا بەرهەمان دا.', 'danger');
+            });
+        }
+    });
+    </script>
+</body>
+</html>
