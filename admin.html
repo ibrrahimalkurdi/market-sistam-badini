@@ -23,7 +23,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
         
         body {
-            font-family: 'Vazirmatn', -apple-system, sans-serif;
+            font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             background-color: var(--background-color);
             color: var(--text-color);
@@ -63,6 +63,7 @@
         .btn:hover { opacity: 0.9; transform: translateY(-2px); }
         .btn.filter-btn { background-color: #e9c46a; }
         .btn.filter-btn.active { background-color: #f4a261; font-weight: bold; }
+        .btn.danger-btn { background-color: var(--danger-color); }
         .back-btn {
             margin-bottom: 1.5rem;
             background-color: var(--primary-color);
@@ -121,6 +122,14 @@
             box-shadow: var(--box-shadow);
             margin-bottom: 2rem;
         }
+        .danger-zone {
+            border: 2px solid var(--danger-color);
+            background-color: #fff1f1;
+        }
+        .danger-zone h2 {
+            color: var(--danger-color);
+            border-bottom-color: var(--danger-color);
+        }
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
         .form-group input, .form-group select {
@@ -166,7 +175,7 @@
         #toast.danger { background-color: var(--danger-color); }
         #toast.show { bottom: 20px; }
         
-        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; }
+        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; position: relative; }
         #scanner-container .viewport, #scanner-container video { width: 100%; }
         .report-placeholder { text-align: center; padding: 2rem; background-color: #fafafa; border-radius: 8px; }
         .filter-buttons { margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -189,6 +198,26 @@
         .dashboard-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
         .dashboard-card .value small { font-size: 1rem; }
 
+        /* ستایلا لودەری */
+        #loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 0.3s ease;
+        }
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid var(--primary-color);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             main { padding: 1rem; }
             .admin-section { padding: 1.2rem; }
@@ -203,6 +232,11 @@
     </style>
 </head>
 <body>
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-size: 1.2rem; color: var(--primary-color);">...بارکرن</p>
+    </div>
+
     <header><h1>پانێلا رێڤەبەریێ</h1></header>
     <main>
         <!-- بەشێ لۆگینێ -->
@@ -219,7 +253,6 @@
                         <input type="password" id="password" required value="admin123">
                     </div>
                     <button type="submit" class="btn">داخلبوون</button>
-                    <button type="button" id="create-admin-user" class="btn" style="background-color: #0d6efd; margin-top: 10px;">درستکرنا ئەدمینێ نوو</button>
                 </form>
             </div>
         </section>
@@ -234,7 +267,7 @@
                 </div>
                 <div class="home-icon" data-target="suppliers-view">
                     <div class="icon-graphic">&#128100;</div>
-                    <h3>رێڤەبرنا دabینکەران</h3>
+                    <h3>رێڤەبرنا دابینکەران</h3>
                 </div>
                 <div class="home-icon" data-target="payments-view">
                     <div class="icon-graphic">&#128181;</div>
@@ -245,6 +278,13 @@
                     <h3>ڕاپۆرت و شرۆڤەکرن</h3>
                 </div>
             </div>
+            
+            <div class="admin-section danger-zone" style="margin-top: 2rem;">
+                <h2>ناڤچەیا مەترسیدار</h2>
+                <p>ئاگاداربە: کرِیارێن ل ڤێرێ نکارین پاشڤە بزڤرن. ب هشیاری بکاربینە.</p>
+                <button id="delete-today-entries-btn" class="btn danger-btn">ژێبرنا هەمی تۆمارێن ئەڤرۆ</button>
+            </div>
+
              <button id="logout-btn" class="btn back-btn" style="background-color: var(--danger-color); margin-top: 2rem; display: block; width: fit-content; margin-left: auto; margin-right: auto;">چوونا دەرڤە</button>
         </section>
 
@@ -389,16 +429,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <script>
     // --- Firebase Configuration ---
-    // پێویستە ئەم بەشە بە زانیارییەکانی پڕۆژەی Firebase ی خۆت پڕ بکەیتەوە
     const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
-  authDomain: "ibrrahim-alkurdi.firebaseapp.com",
-  projectId: "ibrrahim-alkurdi",
-  storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
-  messagingSenderId: "490128006332",
-  appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
-  measurementId: "G-Q4VWN89L3R"
-
+        apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
+        authDomain: "ibrrahim-alkurdi.firebaseapp.com",
+        projectId: "ibrrahim-alkurdi",
+        storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
+        messagingSenderId: "490128006332",
+        appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
+        measurementId: "G-Q4VWN89L3R"
     };
 
     // Initialize Firebase
@@ -411,13 +449,13 @@
         const loginForm = document.getElementById('login-form');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const createAdminUserBtn = document.getElementById('create-admin-user');
         const logoutBtn = document.getElementById('logout-btn');
 
         const homeIcons = document.querySelectorAll('.home-icon');
         const backButtons = document.querySelectorAll('.back-btn');
         const allViews = document.querySelectorAll('.view');
         const toast = document.getElementById('toast');
+        const loader = document.getElementById('loader-overlay');
         
         // Product Management Elements
         const addProductForm = document.getElementById('add-product-form');
@@ -437,6 +475,9 @@
         // Payment Management Elements
         const addPaymentForm = document.getElementById('add-payment-form');
         const paymentListContainer = document.getElementById('payment-list-container');
+        
+        // Danger Zone elements
+        const deleteTodayEntriesBtn = document.getElementById('delete-today-entries-btn');
 
         // Reports Elements
         const dashboardSummaryContainer = document.getElementById('dashboard-summary-container');
@@ -455,11 +496,24 @@
         let payments = [];
         let sales = [];
         let currentBarcodeDocId = null; // Used for editing products
+        
+        // --- Enable Firebase Persistence for Offline Access ---
+        firebase.firestore().enablePersistence({synchronizeTabs:true})
+            .then(() => {
+                console.log("Offline persistence enabled");
+            })
+            .catch((err) => {
+                if (err.code == 'failed-precondition') {
+                    console.warn('Firebase persistence failed. Please close other tabs.');
+                } else if (err.code == 'unimplemented') {
+                    console.warn('Firebase persistence is not available in this browser.');
+                }
+            });
 
         // --- Utility Functions ---
         function showToast(message, type = 'success') {
             toast.textContent = message; toast.className = type; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
         function switchView(viewId) {
@@ -469,70 +523,50 @@
         }
 
         function formatCurrency(number) {
+            if (isNaN(number)) return '0 <small>دینار</small>';
             return parseInt(number).toLocaleString() + ' <small>دینار</small>';
+        }
+
+        function hideLoader() {
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 300);
         }
 
         // --- Firebase Auth Listener ---
         auth.onAuthStateChanged(user => {
             if (user) {
-                // User is signed in.
                 db.collection('users').doc(user.uid).get().then(doc => {
                     if (doc.exists && doc.data().role === 'admin') {
                         switchView('home-view');
-                        showToast('ب خێرهاتی بۆ پانێلا ئەدمینی');
                         loadInitialDataAndReports();
                     } else {
                         showToast('تو ڕێگەپێدراو نینین بۆ چونە ژوورەوە وەک ئەدمین.', 'danger');
                         auth.signOut();
+                        hideLoader();
                     }
                 }).catch(error => {
                     console.error("Error getting user role:", error);
                     showToast('خەلەتی د وەرگرتنا ڕۆڵا بکارهێنەری دا.', 'danger');
                     auth.signOut();
+                    hideLoader();
                 });
             } else {
-                // User is signed out.
                 switchView('login-view');
+                hideLoader();
             }
         });
 
         // --- Authentication Logic ---
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            loader.style.display = 'flex';
             const email = emailInput.value;
             const password = passwordInput.value;
             try {
                 await auth.signInWithEmailAndPassword(email, password);
-                // AuthStateChanged listener will handle view switching and role check
             } catch (error) {
                 showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger');
-            }
-        });
-
-        createAdminUserBtn.addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-
-            if (!email || !password) {
-                showToast('تکایە ئیمەیل و پاسۆردێ بنویسە بۆ دروستکرنا ئەدمین.', 'danger');
-                return;
-            }
-
-            if (!confirm(`ئەرێ دخوازی ئەکاونتەکێ نوی دروست بکەی بۆ ئەدمین ب ئیمەیلێ: ${email}؟`)) {
-                return;
-            }
-
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                // Set admin role in Firestore for the new user
-                await db.collection('users').doc(userCredential.user.uid).set({
-                    email: email,
-                    role: 'admin',
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                showToast('ئەکاونتێ ئەدمین ب سەرکەفتی هاتە دروستکرن. نوکە دشێی داخل ببی.', 'success');
-            } catch (error) {
-                showToast(`خەلەتی د دروستکرنا ئەکاونتی دا: ${error.message}`, 'danger');
+                hideLoader();
             }
         });
 
@@ -540,9 +574,7 @@
             try {
                 await auth.signOut();
                 showToast('ب سەرکەفتی چوویە دەرڤە.', 'success');
-                // Clear data
                 products = []; suppliers = []; payments = []; sales = [];
-                // Clear UI
                 productListContainer.innerHTML = '';
                 supplierListContainer.innerHTML = '';
                 paymentListContainer.innerHTML = '';
@@ -564,17 +596,6 @@
             icon.addEventListener('click', () => {
                 const targetViewId = icon.getAttribute('data-target');
                 switchView(targetViewId);
-                
-                if (targetViewId === 'management-view') {
-                    // Data is already being watched by onSnapshot
-                    renderAdminList();
-                } else if (targetViewId === 'suppliers-view') {
-                    renderSuppliersList();
-                } else if (targetViewId === 'payments-view') {
-                    renderPaymentsList();
-                } else if (targetViewId === 'reports-view') {
-                    renderAllReports('all'); // default filter
-                }
             });
         });
 
@@ -611,7 +632,7 @@
                         <td class="price-col profit">${formatCurrency(profit)}</td>
                         <td>
                            <button class="action-btn edit-btn" data-docid="${p.id}" data-barcode="${p.barcode}">&#9998;</button>
-                           <button class="action-btn delete-btn" data-docid="${p.id}" data-barcode="${p.barcode}">&#10005;</button>
+                           <button class="action-btn delete-btn" data-docid="${p.id}">&#10005;</button>
                         </td>
                     </tr>`
                 }).join('')}
@@ -622,46 +643,36 @@
         addProductForm.addEventListener('submit', async e => {
             e.preventDefault();
             const barcode = barcodeInput.value;
-            const productName = document.getElementById('product-name').value;
-            const productPurchasePrice = document.getElementById('product-purchase-price').value;
-            const productSellingPrice = document.getElementById('product-selling-price').value;
-            const productCategory = document.getElementById('product-category').value;
-            const productQuantity = document.getElementById('product-quantity').value;
-            const productCartons = document.getElementById('product-cartons').value;
-            const productExpiryDate = document.getElementById('product-expiry-date').value;
-            const productBatchNumber = document.getElementById('product-batch-number').value;
-            const productSupplier = productSupplierDropdown.value;
-
             const productData = {
-                barcode: barcode, name: productName,
-                purchasePrice: parseInt(productPurchasePrice),
-                sellingPrice: parseInt(productSellingPrice),
-                category: productCategory, quantity: parseInt(productQuantity),
-                cartons: parseInt(productCartons) || 0, expiryDate: productExpiryDate,
-                batchNumber: productBatchNumber, supplier: productSupplier
+                barcode: barcode,
+                name: document.getElementById('product-name').value,
+                purchasePrice: parseInt(document.getElementById('product-purchase-price').value),
+                sellingPrice: parseInt(document.getElementById('product-selling-price').value),
+                category: document.getElementById('product-category').value,
+                quantity: parseInt(document.getElementById('product-quantity').value),
+                cartons: parseInt(document.getElementById('product-cartons').value) || 0,
+                expiryDate: document.getElementById('product-expiry-date').value,
+                batchNumber: document.getElementById('product-batch-number').value,
+                supplier: productSupplierDropdown.value
             };
             
             try {
                 if (currentBarcodeDocId) {
-                    // Update existing product
-                    if (confirm(`ئەڤ بەرهەمە ب ناڤێ "${productName}" ژ بەری نها هاتیە تۆمارکرن. ئەرێ دێ داتایێن وێ نویکەی؟ (کەمیا نوو دێ ل شûna کەمیا کەڤن هێت)`)) {
-                        await db.collection('products').doc(currentBarcodeDocId).update(productData);
-                        showToast('داتایێن بەرهەمی هاتنە نویکرن');
-                    }
+                    await db.collection('products').doc(currentBarcodeDocId).update(productData);
+                    showToast('داتایێن بەرهەمی هاتنە نویکرن');
                 } else {
-                    // Add new product
-                    // Check if barcode already exists for a new product
                     const existingProduct = products.find(p => p.barcode === barcode);
                     if (existingProduct) {
                          showToast('ئەڤ بارکۆدە ژ بەری نوکە بۆ بەرهەمەکێ دی هاتیە تۆمارکرن!', 'danger');
                          return;
                     }
+                    productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                     await db.collection('products').add(productData);
                     showToast('بەرهەم ب سەرکەفتی هـاتە زێـدەکرن');
                 }
                 addProductForm.reset();
-                currentBarcodeDocId = null; // Reset for next add/edit
-                barcodeInput.readOnly = false; // Enable barcode input again
+                currentBarcodeDocId = null; 
+                barcodeInput.readOnly = false;
             } catch (error) {
                 showToast(`خەلەتی: ${error.message}`, 'danger');
                 console.error("Error adding/updating product:", error);
@@ -673,17 +684,20 @@
         productListContainer.addEventListener('click', async e => {
             const target = e.target.closest('.action-btn'); if (!target) return;
             const docId = target.getAttribute('data-docid');
-            const barcode = target.getAttribute('data-barcode');
-
+            
             if (target.classList.contains('delete-btn')) {
-                if (confirm('تو پشتراستی دخوازی ڤی بەرهەمی ژێببەی؟')) {
+                const productToDelete = products.find(p => p.id === docId);
+                if (!productToDelete) return;
+                const confirmation = prompt(`بۆ پشتراستکرنا ژێبرنێ، ناڤێ بەرهەمی بنڤیسە: "${productToDelete.name}"`);
+                if (confirmation === productToDelete.name) {
                     try {
                         await db.collection('products').doc(docId).delete();
                         showToast('بەرهەم هاتە ژێبرن', 'danger');
                     } catch (error) {
                         showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                        console.error("Error deleting product:", error);
                     }
+                } else if (confirmation !== null) {
+                    showToast('ناڤێ هاتناڤکرن هەڤبەر نەبوو. ژێبرن هاتە راوەستاندن.', 'danger');
                 }
             } else if (target.classList.contains('edit-btn')) {
                 const productToEdit = products.find(p => p.id === docId);
@@ -700,15 +714,14 @@
                 document.getElementById('product-batch-number').value = productToEdit.batchNumber;
                 productSupplierDropdown.value = productToEdit.supplier;
 
-                currentBarcodeDocId = docId; // Store doc ID for update
-                barcodeInput.readOnly = true; // Prevent changing barcode during edit
-
-                showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی و "تۆمارکرن"ێ کلیک بکەی');
+                currentBarcodeDocId = docId;
+                barcodeInput.readOnly = true;
+                showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی.');
                 window.scrollTo(0, 0);
             }
         });
 
-        // --- Supplier Management (Firebase Integration) ---
+        // --- Supplier Management ---
         function renderSuppliersList() {
             supplierListContainer.innerHTML = '';
              if (suppliers.length === 0) {
@@ -755,7 +768,6 @@
                 addSupplierForm.reset();
             } catch (error) {
                 showToast(`خەلەتی: ${error.message}`, 'danger');
-                console.error("Error adding supplier:", error);
             }
         });
 
@@ -765,19 +777,21 @@
                 const supplierToDelete = suppliers.find(s => s.id === docId);
                 if (!supplierToDelete) return;
 
-                if (confirm(`تو پشتراستی دخوازی دابینکەرێ "${supplierToDelete.name}" ژێببەی؟`)) {
+                const confirmation = prompt(`بۆ پشتراستکرنێ، ناڤێ دابینکەری بنڤیسە: "${supplierToDelete.name}"`);
+                if (confirmation === supplierToDelete.name) {
                     try {
                         await db.collection('suppliers').doc(docId).delete();
-                        showToast('دabینکەر هاتە ژێبرن', 'danger');
+                        showToast('دابینکەر هاتە ژێبرن', 'danger');
                     } catch (error) {
                         showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                        console.error("Error deleting supplier:", error);
                     }
+                } else if (confirmation !== null) {
+                     showToast('ناڤێ هاتناڤکرن هەڤبەر نەبوو. ژێبرن هاتە راوەستاندن.', 'danger');
                 }
             }
         });
         
-        // --- Payment Management (Firebase Integration) ---
+        // --- Payment Management ---
         function renderPaymentsList() {
             paymentListContainer.innerHTML = '';
             const sortedPayments = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date));
@@ -813,26 +827,76 @@
                 addPaymentForm.reset();
             } catch (error) {
                 showToast(`خەلەتی: ${error.message}`, 'danger');
-                console.error("Error adding payment:", error);
             }
         });
 
         paymentListContainer.addEventListener('click', async e => {
             if (e.target.closest('.delete-btn')) {
                 const docId = e.target.closest('.delete-btn').getAttribute('data-docid');
-                if (confirm('تو پشتراستی دخوازی ڤێ پارەدانێ ژێببەی؟')) {
+                 if (confirm('تو پشتراستی دخوازی ڤێ پارەدانێ ژێببەی؟')) {
                     try {
                         await db.collection('payments').doc(docId).delete();
                         showToast('پارەدان هاتە ژێبرن', 'danger');
                     } catch (error) {
                         showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                        console.error("Error deleting payment:", error);
                     }
                 }
             }
         });
 
-        // --- Reports Section (Firebase Integration) ---
+        // --- DANGER ZONE LOGIC ---
+        deleteTodayEntriesBtn.addEventListener('click', async () => {
+            const CONFIRM_KEYWORD = "ژێبرن";
+
+            const keyword = prompt(`هشدار: ئەڤ کرارە دێ هەمی بەرهەم، پارەدان و دابینکەرێن کو ئەڤرۆ هاتینە زێدەکرن ژێببەت.\n\nڤێ کرارێ نکارین پاشڤە ب زڤرینین.\n\nبۆ بەردەوامبوونێ، بنڤیسە: ${CONFIRM_KEYWORD}`);
+            if (keyword !== CONFIRM_KEYWORD) {
+                showToast('کۆدێ خەلەت. کرار هاتە راوەستاندن.', 'danger');
+                return;
+            }
+
+            if (!confirm("تو ژ %100 پشتراستی؟ هەمی تۆمارێن ئەڤرۆ دێ هێنە ژێبرن.")) {
+                showToast('کرار هاتە راوەستاندن.', 'danger');
+                return;
+            }
+
+            if (!confirm("پشتراستکرنا دووماهیێ: بۆ ژێبرنا هەمی تۆمارێن ئەڤرۆ 'OK' کلیک بکە.")) {
+                 showToast('کرار هاتە راوەستاندن.', 'danger');
+                return;
+            }
+            
+            loader.style.display = 'flex';
+            try {
+                const now = new Date();
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                
+                const collectionsToDelete = ['products', 'suppliers', 'payments'];
+                const batch = db.batch();
+                let deleteCount = 0;
+
+                for (const collectionName of collectionsToDelete) {
+                    const querySnapshot = await db.collection(collectionName).where('createdAt', '>=', startOfDay).get();
+                    querySnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                        deleteCount++;
+                    });
+                }
+                
+                if (deleteCount > 0) {
+                    await batch.commit();
+                    showToast(`ب سەرکەفتی ${deleteCount} تۆمارێن ئەڤرۆ هاتنە ژێبرن.`, 'success');
+                } else {
+                    showToast('چ تۆمارێن ئەڤرۆ نەهاتنە دیتن بۆ ژێبرنێ.', 'success');
+                }
+
+            } catch (error) {
+                console.error("Error deleting today's entries:", error);
+                showToast(`خەلەتیەکا مەزن د ژێبرنێ دا روویدا: ${error.message}`, 'danger');
+            } finally {
+                hideLoader();
+            }
+        });
+
+        // --- Reports Section ---
         function renderAllReports(paymentFilter = 'all') {
             renderDashboardSummary();
             renderInventoryValueReport();
@@ -841,7 +905,7 @@
             renderProductProfitabilityReport();
             renderLowStockReport();
             renderNearExpiryReport();
-            renderSalesReport(); // Render sales report as well
+            renderSalesReport();
         }
         
         paymentReportFilters.addEventListener('click', e => {
@@ -866,7 +930,6 @@
             const nearExpiryCount = products.filter(p => {
                 if (!p.expiryDate) return false;
                 const expiryDate = new Date(p.expiryDate);
-                // Compare only date part
                 const pDate = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
                 const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
                 const limitDate = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
@@ -875,32 +938,13 @@
 
             dashboardSummaryContainer.innerHTML = `
                 <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3>ژمارا بەرهەمان</h3>
-                        <div class="value">${totalProducts}</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>ژمارا دابینکەران</h3>
-                        <div class="value">${totalSuppliers}</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>کۆژمێ پارەدانان</h3>
-                        <div class="value">${formatCurrency(totalPayments)}</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>کۆژمێ گشتیێ فرۆشتنێ</h3>
-                        <div class="value">${formatCurrency(totalSalesRevenue)}</div>
-                    </div>
-                    <div class="dashboard-card">
-                        <h3>بەرهەمێن ستۆک کێم</h3>
-                        <div class="value">${lowStockCount}</div>
-                    </div>
-                     <div class="dashboard-card">
-                        <h3>بەرهەمێن نێزیک ب دوماهیک بێن</h3>
-                        <div class="value">${nearExpiryCount}</div>
-                    </div>
-                </div>
-            `;
+                    <div class="dashboard-card"><h3>ژمارا بەرهەمان</h3><div class="value">${totalProducts}</div></div>
+                    <div class="dashboard-card"><h3>ژمارا دابینکەران</h3><div class="value">${totalSuppliers}</div></div>
+                    <div class="dashboard-card"><h3>کۆژمێ پارەدانان</h3><div class="value">${formatCurrency(totalPayments)}</div></div>
+                    <div class="dashboard-card"><h3>کۆژمێ گشتیێ فرۆشتنێ</h3><div class="value">${formatCurrency(totalSalesRevenue)}</div></div>
+                    <div class="dashboard-card"><h3>بەرهەمێن ستۆک کێم</h3><div class="value">${lowStockCount}</div></div>
+                    <div class="dashboard-card"><h3>بەرهەمێن نێزیک ب دوماهیک بێن</h3><div class="value">${nearExpiryCount}</div></div>
+                </div>`;
         }
 
         function renderInventoryValueReport() {
@@ -933,7 +977,7 @@
                 });
             } else if (filter === 'week') {
                 const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday as start of week
+                startOfWeek.setDate(today.getDate() - today.getDay()); 
                 filteredPayments = payments.filter(p => new Date(p.date) >= startOfWeek);
             } else if (filter === 'month') {
                 const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1026,7 +1070,6 @@
             const nearExpiryProducts = products.filter(p => { 
                 if (!p.expiryDate) return false;
                 const expiryDate = new Date(p.expiryDate); 
-                // Normalize dates to only compare day, month, year
                 const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
                 const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
                 const expiryLimitDateOnly = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
@@ -1051,7 +1094,6 @@
                 return;
             }
 
-            // Group sales by date for daily totals
             const salesByDate = sales.reduce((acc, sale) => {
                 const saleDate = sale.timestamp ? new Date(sale.timestamp.toDate()).toLocaleDateString('ku-IQ') : new Date().toLocaleDateString('ku-IQ');
                 acc[saleDate] = (acc[saleDate] || 0) + sale.totalAmount;
@@ -1061,9 +1103,7 @@
             let salesHtml = `
                 <h3>فرۆشتن بەپێی ڕۆژ</h3>
                 <table>
-                    <thead>
-                        <tr><th>ڕۆژ</th><th>کۆژمەی فرۆشتن</th></tr>
-                    </thead>
+                    <thead><tr><th>ڕۆژ</th><th>کۆژمەی فرۆشتن</th></tr></thead>
                     <tbody>
                         ${Object.entries(salesByDate).sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA)).map(([date, total]) => `
                             <tr><td>${date}</td><td class="price-col selling">${formatCurrency(total)}</td></tr>
@@ -1073,32 +1113,26 @@
                 <h3 style="margin-top: 2rem;">هەموو فرۆشتنەکان</h3>
                 <table>
                     <thead>
-                        <tr>
-                            <th>ID فرۆشتن</th>
-                            <th>بکارهێنەر</th>
-                            <th>ژمارەی شتومەک</th>
-                            <th>کۆی گشتی</th>
-                            <th>کات</th>
-                        </tr>
+                        <tr><th>ID فرۆشتن</th><th>بکارهێنەر</th><th>ژمارەی شتومەک</th><th>کۆی گشتی</th><th>کات</th></tr>
                     </thead>
                     <tbody>
                         ${sales.sort((a, b) => (b.timestamp ? b.timestamp.toDate() : 0) - (a.timestamp ? a.timestamp.toDate() : 0)).map(s => `
                             <tr>
-                                <td>${s.id}</td>
-                                <td>${s.cashier || 'نادیار'}</td>
-                                <td>${s.items.length}</td>
+                                <td>${s.id.slice(0, 8)}...</td><td>${s.cashier || 'نادیار'}</td><td>${s.items.length}</td>
                                 <td class="price-col selling">${formatCurrency(s.totalAmount)}</td>
                                 <td>${s.timestamp ? new Date(s.timestamp.toDate()).toLocaleString('ku-IQ') : 'نادیار'}</td>
-                            </tr>
-                        `).join('')}
+                            </tr>`).join('')}
                     </tbody>
-                </table>
-            `;
+                </table>`;
             salesReportContainer.innerHTML = salesHtml;
         }
 
         // --- Barcode Scanner Logic ---
         let isScannerActive = false;
+        let potentialBarcode = null;
+        let confirmationCount = 0;
+        const CONFIRMATION_THRESHOLD = 3;
+
         function startScanner() {
             scannerContainer.style.display = 'block';
             Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader", "upc_reader", "code_39_reader"] } }, (err) => { 
@@ -1111,95 +1145,116 @@
                 Quagga.stop(); 
                 isScannerActive = false; 
                 scannerContainer.style.display = 'none'; 
+                potentialBarcode = null;
+                confirmationCount = 0;
             } 
         }
         scanBtn.addEventListener('click', () => { 
-            if (!isScannerActive) { 
-                startScanner(); 
-            } else { 
-                stopScanner(); 
-            } 
+            if (!isScannerActive) startScanner(); 
+            else stopScanner(); 
         });
         stopScanBtn.addEventListener('click', stopScanner);
-        Quagga.onDetected(result => { 
-            const code = result.codeResult.code; 
-            barcodeInput.value = code; 
-            showToast(`بارکۆد هاتە خواندن: ${code}`); 
-            stopScanner(); 
 
-            // Automatically load product data if barcode exists
-            const existingProduct = products.find(p => p.barcode === code);
-            if (existingProduct) {
-                // Simulate clicking edit button
-                const editButton = productListContainer.querySelector(`button[data-barcode="${code}"][data-docid="${existingProduct.id}"]`);
-                if(editButton) {
-                    editButton.click();
-                } else {
-                    // Fallback to manual fill if button not found (e.g., search filtered it out)
-                    document.getElementById('product-name').value = existingProduct.name;
-                    document.getElementById('product-purchase-price').value = existingProduct.purchasePrice;
-                    document.getElementById('product-selling-price').value = existingProduct.sellingPrice;
-                    document.getElementById('product-category').value = existingProduct.category;
-                    document.getElementById('product-quantity').value = existingProduct.quantity;
-                    document.getElementById('product-cartons').value = existingProduct.cartons;
-                    document.getElementById('product-expiry-date').value = existingProduct.expiryDate;
-                    document.getElementById('product-batch-number').value = existingProduct.batchNumber;
-                    productSupplierDropdown.value = existingProduct.supplier;
-                    currentBarcodeDocId = existingProduct.id;
-                    barcodeInput.readOnly = true;
-                    showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی و "تۆمارکرن"ێ کلیک بکەی');
-                    window.scrollTo(0, 0);
+        Quagga.onDetected(result => { 
+            const detectedCode = result.codeResult.code; 
+            if (!detectedCode) return;
+
+            if (potentialBarcode !== detectedCode) {
+                potentialBarcode = detectedCode;
+                confirmationCount = 1;
+                return;
+            }
+
+            confirmationCount++;
+
+            if (confirmationCount >= CONFIRMATION_THRESHOLD) {
+                const confirmedCode = potentialBarcode;
+                barcodeInput.value = confirmedCode;
+                showToast(`بارکۆد هاتە خواندن: ${confirmedCode}`); 
+                stopScanner(); 
+                
+                const existingProduct = products.find(p => p.barcode === confirmedCode);
+                if (existingProduct) {
+                     const editButton = productListContainer.querySelector(`button.edit-btn[data-barcode="${confirmedCode}"]`);
+                     if (editButton) editButton.click();
                 }
             }
         });
         
-        // --- Firebase Real-time Listeners (onSnapshot) ---
+        // --- Firebase Real-time Listeners ---
+        let initialLoadComplete = false;
         function setupFirestoreListeners() {
+            const commonErrorHandler = (collectionName, error) => {
+                console.error(`Error fetching ${collectionName}:`, error);
+                showToast(`خەلەتی د وەرگرتنا ${collectionName} دا.`, 'danger');
+            };
+            
             db.collection('products').onSnapshot(snapshot => {
                 products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderAdminList(searchInput.value);
-                populateSuppliersDropdowns(); // Update dropdowns as products might change supplier names
-                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-            }, error => {
-                console.error("Error fetching products:", error);
-                showToast('خەلەتی د وەرگرتنا بەرهەمان دا.', 'danger');
-            });
+                if (initialLoadComplete) {
+                    renderAdminList(searchInput.value);
+                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+                }
+            }, error => commonErrorHandler('بەرهەمان', error));
 
             db.collection('suppliers').onSnapshot(snapshot => {
                 suppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderSuppliersList();
-                populateSuppliersDropdowns();
-                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-            }, error => {
-                console.error("Error fetching suppliers:", error);
-                showToast('خەلەتی د وەرگرتنا دابینکەران دا.', 'danger');
-            });
+                 if (initialLoadComplete) {
+                    renderSuppliersList();
+                    populateSuppliersDropdowns();
+                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+                }
+            }, error => commonErrorHandler('دابینکەران', error));
 
             db.collection('payments').onSnapshot(snapshot => {
                 payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderPaymentsList();
-                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-            }, error => {
-                console.error("Error fetching payments:", error);
-                showToast('خەلەتی د وەرگرتنا پارەدانان دا.', 'danger');
-            });
+                 if (initialLoadComplete) {
+                    renderPaymentsList();
+                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+                }
+            }, error => commonErrorHandler('پارەدانان', error));
 
             db.collection('sales').onSnapshot(snapshot => {
                 sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-            }, error => {
-                console.error("Error fetching sales:", error);
-                showToast('خەلەتی د وەرگرتنا فرۆشتنەکان دا.', 'danger');
-            });
+                if (initialLoadComplete) {
+                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
+                }
+            }, error => commonErrorHandler('فرۆشتنەکان', error));
         }
 
-        function loadInitialDataAndReports() {
-            setupFirestoreListeners();
-            document.getElementById('payment-date').valueAsDate = new Date();
-        }
+        async function loadInitialDataAndReports() {
+            try {
+                const [productsSnap, suppliersSnap, paymentsSnap, salesSnap] = await Promise.all([
+                    db.collection('products').get(),
+                    db.collection('suppliers').get(),
+                    db.collection('payments').get(),
+                    db.collection('sales').get()
+                ]);
 
-        // Initial app setup (auth state listener handles view switching)
-        // initializeApp(); // No need, auth.onAuthStateChanged does this.
+                products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                suppliers = suppliersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                payments = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                sales = salesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                renderAdminList();
+                renderSuppliersList();
+                renderPaymentsList();
+                populateSuppliersDropdowns();
+                renderAllReports();
+                
+                initialLoadComplete = true;
+                hideLoader();
+                showToast('ب خێرهاتی بۆ پانێلا ئەدمینی');
+
+                setupFirestoreListeners();
+                document.getElementById('payment-date').valueAsDate = new Date();
+                
+            } catch (error) {
+                console.error("Error during initial data load:", error);
+                showToast('خەلەتیەکا مەزن د بارکرنا داتایان دا ڕوویدا!', 'danger');
+                hideLoader();
+            }
+        }
     });
     </script>
 </body>
