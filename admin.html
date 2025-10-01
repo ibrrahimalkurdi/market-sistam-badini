@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>پانێلا ئەدمینی - سیستەما مارکێتێ</title>
+    
+    <!-- PWA (Progressive Web App) Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="پانێلا رێڤەبەریێ">
+    <meta name="theme-color" content="#005f73">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -12,305 +19,241 @@
             --primary-color: #005f73;
             --secondary-color: #0a9396;
             --accent-color: #94d2bd;
-            --danger-color: #ae2012;
+            --danger-color: #c1121f;
             --success-color: #2a9d8f;
-            --background-color: #edf2f4;
+            --background-color: #f0f3f5;
             --card-bg: #ffffff;
             --text-color: #2b2d42;
-            --border-radius: 12px;
-            --box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            --border-radius: 10px;
+            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+            --light-gray: #e9ecef;
         }
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap');
         
         body {
             font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             background-color: var(--background-color);
             color: var(--text-color);
-            line-height: 1.7;
-            font-size: 16px;
+            line-height: 1.6;
+            font-size: 15px; /* Fonta bingehîn hate kêmkirin */
         }
         header {
             background-color: var(--primary-color);
             color: white;
-            padding: 1rem 1.5rem;
+            padding: 0.8rem 1.2rem; /* Padding hate kêmkirin */
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        header h1 { margin: 0; font-size: 1.6rem; }
-        main { padding: 2rem; max-width: 1600px; margin: auto; }
+        header h1 { margin: 0; font-size: 1.4rem; font-weight: 600; }
+        main { padding: 1.5rem; max-width: 1600px; margin: auto; }
         .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .view.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
         h2 {
-            border-bottom: 3px solid var(--secondary-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 2rem;
-            font-size: 1.5rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.4rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-size: 1.3rem; /* Mezinahiya fontê hate kêmkirin */
+            font-weight: 700;
+            color: var(--primary-color);
         }
         .btn {
             background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 0.8rem 1.8rem;
-            font-size: 1.1rem;
+            padding: 0.6rem 1.4rem; /* Padding hate kêmkirin */
+            font-size: 0.95rem; /* Mezinahiya fontê hate kêmkirin */
+            font-weight: 600;
             border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.25s;
             margin: 0.2rem;
-        }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
-        .btn.filter-btn { background-color: #e9c46a; }
-        .btn.filter-btn.active { background-color: #f4a261; font-weight: bold; }
-        .btn.danger-btn { background-color: var(--danger-color); }
-        .back-btn {
-            margin-bottom: 1.5rem;
-            background-color: var(--primary-color);
-        }
-
-        /* ستایلێن نوو بۆ مالپەرێ سەرەکی */
-        #home-view h2 { text-align: center; color: var(--primary-color); }
-        .home-menu {
-            display: flex;
-            justify-content: center;
+            display: inline-flex;
             align-items: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-            padding: 2rem 0;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        .btn:hover { opacity: 0.85; transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .btn.profile-btn { background-color: #0077b6; }
+        .btn.danger-btn { background-color: var(--danger-color); }
+        .back-btn { margin-bottom: 1.2rem; background-color: var(--primary-color); }
+
+        /* Malpera Sereke */
+        #home-view h2 { text-align: center; border: none; font-size: 1.5rem; }
+        .home-menu {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Minmax hate kêmkirin */
+            gap: 1.5rem;
+            padding: 1.5rem 0;
         }
         .home-icon {
             background-color: var(--card-bg);
-            padding: 2rem;
+            padding: 1.5rem; /* Padding hate kêmkirin */
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 280px;
-            border-bottom: 5px solid transparent;
+            border-bottom: 4px solid transparent;
         }
-        .home-icon:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border-bottom-color: var(--secondary-color);
-        }
-        .home-icon .icon-graphic {
-            font-size: 4.5rem;
-            margin-bottom: 1rem;
-            line-height: 1;
-            color: var(--primary-color);
-        }
-        .home-icon h3 {
-            margin: 0;
-            font-size: 1.3rem;
-            color: var(--primary-color);
-        }
+        .home-icon:hover { transform: translateY(-7px); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1); border-bottom-color: var(--secondary-color); }
+        .home-icon .icon-graphic { font-size: 3.5rem; margin-bottom: 0.8rem; line-height: 1; color: var(--primary-color); }
+        .home-icon h3 { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--primary-color); }
         
-        .admin-layout {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-        @media (min-width: 992px) {
-            .admin-layout { grid-template-columns: 450px 1fr; }
-        }
+        .admin-layout { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
         .admin-section {
             background-color: var(--card-bg);
-            padding: 2rem;
+            padding: 1.5rem; /* Padding hate kêmkirin */
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
-        .danger-zone {
-            border: 2px solid var(--danger-color);
-            background-color: #fff1f1;
+        .form-group { margin-bottom: 1.1rem; }
+        .form-group label { display: block; margin-bottom: 0.4rem; font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.7rem; border: 1px solid #ccc; /* Padding hate kêmkirin */
+            border-radius: 8px; box-sizing: border-box; font-size: 0.95rem;
         }
-        .danger-zone h2 {
-            color: var(--danger-color);
-            border-bottom-color: var(--danger-color);
-        }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 0.9rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 95, 115, 0.2);
-        }
-        .form-submit-btn { width: 100%; margin-top: 1rem; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(0, 95, 115, 0.2); }
+        .form-submit-btn { width: 100%; margin-top: 0.8rem; }
         
-        .barcode-input-group { display: flex; align-items: center; gap: 0.5rem; }
-        #product-list-wrapper { overflow-x: auto; }
-        
+        .list-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 1rem; border-bottom: 1px solid #ddd; text-align: right; white-space: nowrap; }
-        th { background-color: #f8f9fa; font-weight: bold; }
+        th, td { padding: 0.75rem 0.8rem; border-bottom: 1px solid #e0e0e0; text-align: right; white-space: nowrap; font-size: 0.9rem; }
+        th { background-color: var(--light-gray); font-weight: 700; color: var(--primary-color); }
+        tbody tr { transition: background-color 0.2s ease; }
+        tbody tr:hover { background-color: #f8f9fa; }
         
-        .price-col { font-weight: bold; }
+        .price-col { font-weight: 600; }
         .price-col.purchase { color: var(--danger-color); }
         .price-col.selling { color: var(--success-color); }
         .price-col.profit { color: var(--primary-color); }
         
-        .action-btn { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; transition: transform 0.2s; }
-        .action-btn:hover { transform: scale(1.2); }
+        .action-btn { background: transparent; border: none; font-size: 1.3rem; cursor: pointer; transition: transform 0.2s, color 0.2s; padding: 0.2rem; }
+        .action-btn:hover { transform: scale(1.15); }
         .delete-btn { color: var(--danger-color); }
         .edit-btn { color: var(--secondary-color); margin-left: 0.5rem; }
         
-        #login-view { max-width: 400px; margin: 5rem auto; text-align: center; }
+        #login-view { max-width: 380px; margin: 4rem auto; text-align: center; }
         
-        #toast {
-            position: fixed; bottom: -100px; left: 50%;
-            transform: translateX(-50%); background-color: var(--success-color); color: white;
-            padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: bottom 0.5s ease; z-index: 1000; width: 90%; max-width: 500px; text-align: center;
-        }
+        #toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: var(--success-color); color: white; padding: 0.8rem 1.5rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transition: bottom 0.5s ease, transform 0.5s ease; z-index: 1000; width: 90%; max-width: 450px; text-align: center; font-size: 0.95rem; }
         #toast.danger { background-color: var(--danger-color); }
         #toast.show { bottom: 20px; }
         
-        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; position: relative; }
-        #scanner-container .viewport, #scanner-container video { width: 100%; }
-        .report-placeholder { text-align: center; padding: 2rem; background-color: #fafafa; border-radius: 8px; }
-        .filter-buttons { margin-bottom: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        /* Skaner */
+        #scanner-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; animation: fadeIn 0.3s; }
+        #scanner-modal-content { background: white; padding: 1.2rem; border-radius: var(--border-radius); width: 90%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        #scanner-modal h3 { margin-top: 0; margin-bottom: 1rem; color: var(--primary-color); font-size: 1.1rem; }
+        #scanner-reader { width: 100%; border-radius: 8px; overflow: hidden; }
 
-        /* ستایلێن نوو بۆ ڕاپۆرتا */
-         .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .dashboard-card {
-            background-color: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            text-align: center;
-            border-left: 5px solid var(--primary-color);
-        }
-        .dashboard-card h3 { margin-top: 0; font-size: 1.1rem; color: #555; }
-        .dashboard-card .value { font-size: 2rem; font-weight: bold; color: var(--primary-color); }
-        .dashboard-card .value small { font-size: 1rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem; }
+        .dashboard-card { background-color: var(--card-bg); padding: 1.2rem; border-radius: var(--border-radius); text-align: center; border-left: 4px solid var(--primary-color); transition: transform 0.3s, box-shadow 0.3s; }
+        .dashboard-card:hover { transform: translateY(-4px); box-shadow: var(--box-shadow); }
+        .dashboard-card h3 { margin-top: 0; font-size: 1rem; color: #555; font-weight: 600; }
+        .dashboard-card .value { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
+        .dashboard-card .value small { font-size: 0.9rem; }
 
-        /* ستایلا لودەری */
-        #loader-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.9); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-            transition: opacity 0.3s ease;
-        }
-        .spinner {
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid var(--primary-color);
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        #loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.3s ease, visibility 0.3s; }
+        .spinner { border: 7px solid #f3f3f3; border-top: 7px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Profîla Dabînkeran */
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 2rem 1.5rem; border-radius: var(--border-radius);
+            margin-bottom: 1.5rem; text-align: center; box-shadow: 0 8px 25px rgba(0, 95, 115, 0.25);
+        }
+        .profile-header h2 { margin: 0 0 0.4rem 0; border: none; color: white; font-size: 1.8rem; font-weight: 700; }
+        .profile-header p { margin: 0; font-size: 1.05rem; opacity: 0.9; }
+        .profile-balance-card { margin-top: 1.2rem; }
+        .profile-balance-card .balance-label { font-size: 1rem; opacity: 0.9; }
+        .profile-balance-card .balance-amount { font-size: 2.4rem; font-weight: 700; margin-top: 0.4rem; }
+        .profile-balance-card .balance-amount.positive { color: #d4edda; }
+        .profile-balance-card .balance-amount.negative { color: #f8d7da; }
+        .profile-balance-card .balance-status { font-style: italic; opacity: 0.9; font-size: 0.95rem; }
+        
+        .profile-section { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 1.5rem; }
+        .profile-section h3 {
+            padding: 0.8rem 1.2rem; margin: 0; font-size: 1.15rem; font-weight: 700;
+            color: var(--primary-color); border-bottom: 2px solid var(--light-gray);
+        }
+        .profile-section-content { padding: 0.5rem 1.2rem 1.2rem 1.2rem; }
+        .profile-section-content p.no-data { margin-top: 1rem; text-align: center; color: #777; font-size: 0.9rem; }
+        
+        /* Sêwirana Bersivdar (Responsive) */
+        @media (min-width: 992px) {
+            .admin-layout { grid-template-columns: 1fr 1fr; }
+            #management-view .admin-layout { grid-template-columns: 420px 1fr; }
+        }
         @media (max-width: 768px) {
             main { padding: 1rem; }
             .admin-section { padding: 1.2rem; }
-            header h1 { font-size: 1.4rem; }
-            h2 { font-size: 1.3rem; margin-bottom: 1.5rem; }
-            .btn { padding: 0.7rem 1.2rem; font-size: 1rem; }
-            th, td { padding: 0.75rem; font-size: 0.9rem; }
+            header h1 { font-size: 1.25rem; }
+            h2 { font-size: 1.2rem; }
+            .btn { padding: 0.6rem 1.1rem; font-size: 0.9rem; }
+            th, td { padding: 0.6rem 0.7rem; font-size: 0.85rem; }
             #login-view { margin: 2rem auto; padding: 0 1rem; }
-            .home-icon { width: 90%; padding: 1.5rem; }
-            .dashboard-grid { grid-template-columns: 1fr 1fr; }
+            .home-menu { grid-template-columns: 1fr 1fr; gap: 1rem; }
+            .home-icon { padding: 1.2rem; }
+            .home-icon .icon-graphic { font-size: 3rem; }
+            .home-icon h3 { font-size: 1rem; }
+            .dashboard-grid { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+            .dashboard-card { padding: 1rem; }
+            .dashboard-card .value { font-size: 1.6rem; }
+            .profile-header h2 { font-size: 1.6rem; }
+            .profile-balance-card .balance-amount { font-size: 2rem; }
+        }
+        @media (max-width: 480px) {
+             .home-menu { grid-template-columns: 1fr; }
+             .dashboard-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div id="loader-overlay">
-        <div class="spinner"></div>
-        <p style="margin-top: 1rem; font-size: 1.2rem; color: var(--primary-color);">...بارکرن</p>
-    </div>
+    <div id="loader-overlay"><div class="spinner"></div><p style="margin-top: 1rem; font-size: 1.2rem; color: var(--primary-color);">...بارکرن</p></div>
 
     <header><h1>پانێلا رێڤەبەریێ</h1></header>
     <main>
-        <!-- بەشێ لۆگینێ -->
         <section id="login-view" class="view active">
             <div class="admin-section">
                 <h2>چوونا ژۆر (ئەدمین)</h2>
                 <form id="login-form">
-                    <div class="form-group">
-                        <label for="email">ئیمەیل:</label>
-                        <input type="email" id="email" required value="admin@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">پاسۆرد:</label>
-                        <input type="password" id="password" required value="admin123">
-                    </div>
+                    <div class="form-group"><label for="email">ئیمەیل:</label><input type="email" id="email" required value="admin@example.com"></div>
+                    <div class="form-group"><label for="password">پاسۆرد:</label><input type="password" id="password" required value="admin123"></div>
                     <button type="submit" class="btn">داخلبوون</button>
                 </form>
             </div>
         </section>
 
-        <!-- مالپەرێ سەرەکی -->
         <section id="home-view" class="view">
             <h2>مالپەرێ سەرەکی</h2>
             <div class="home-menu">
-                <div class="home-icon" data-target="management-view">
-                    <div class="icon-graphic">&#128230;</div>
-                    <h3>رێڤەبرنا بەرهەمان</h3>
-                </div>
-                <div class="home-icon" data-target="suppliers-view">
-                    <div class="icon-graphic">&#128100;</div>
-                    <h3>رێڤەبرنا دابینکەران</h3>
-                </div>
-                <div class="home-icon" data-target="payments-view">
-                    <div class="icon-graphic">&#128181;</div>
-                    <h3>رێڤەبرنا پارەدانان</h3>
-                </div>
-                 <div class="home-icon" data-target="reports-view">
-                    <div class="icon-graphic">&#128203;</div>
-                    <h3>ڕاپۆرت و شرۆڤەکرن</h3>
-                </div>
+                <div class="home-icon" data-target="management-view"><div class="icon-graphic">&#128230;</div><h3>رێڤەبرنا بەرهەمان</h3></div>
+                <div class="home-icon" data-target="suppliers-view"><div class="icon-graphic">&#128100;</div><h3>رێڤەبرنا دابینکەران</h3></div>
+                <div class="home-icon" data-target="purchases-view"><div class="icon-graphic">&#128179;</div><h3>تۆمارکرنا کرینان</h3></div>
+                <div class="home-icon" data-target="debts-view"><div class="icon-graphic">&#128181;</div><h3>رێڤەبرنا قەرزان</h3></div>
+                <div class="home-icon" data-target="reports-view"><div class="icon-graphic">&#128203;</div><h3>ڕاپۆرت و شرۆڤەکرن</h3></div>
             </div>
-            
-            <div class="admin-section danger-zone" style="margin-top: 2rem;">
-                <h2>ناڤچەیا مەترسیدار</h2>
-                <p>ئاگاداربە: کرِیارێن ل ڤێرێ نکارین پاشڤە بزڤرن. ب هشیاری بکاربینە.</p>
-                <button id="delete-today-entries-btn" class="btn danger-btn">ژێبرنا هەمی تۆمارێن ئەڤرۆ</button>
-            </div>
-
-             <button id="logout-btn" class="btn back-btn" style="background-color: var(--danger-color); margin-top: 2rem; display: block; width: fit-content; margin-left: auto; margin-right: auto;">چوونا دەرڤە</button>
+            <button id="logout-btn" class="btn danger-btn" style="margin-top: 2rem; display: block; width: fit-content; margin-left: auto; margin-right: auto;">چوونا دەرڤە</button>
         </section>
 
-        <!-- دیمەنێ رێڤەبرنا بەرهەمان -->
         <section id="management-view" class="view">
-             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون</button>
             <div class="admin-layout">
                 <div class="admin-section">
-                    <h2>زێدەکرن یان نویکرنا بەرهەمەکێ</h2>
+                    <h2>زێدەکرن/نویکرنا بەرهەمەکێ</h2>
                     <form id="add-product-form">
                         <div class="form-group">
                             <label for="barcode">ژمارا بارکۆدی:</label>
-                            <div class="barcode-input-group">
-                                <input type="text" id="barcode" required placeholder="بارکۆدێ بنڤیسە یان سکان بکە">
-                                <button type="button" id="scan-barcode-btn" class="btn">&#128247;</button>
+                            <div class="barcode-input-group" style="display:flex; gap: 0.5rem;">
+                                <input type="text" id="barcode" required placeholder="بارکۆدێ بنڤیسە یان سکان بکە" style="flex-grow: 1;">
+                                <button type="button" id="scan-barcode-btn" class="btn" title="سکانکرنا بارکۆدی">&#128247;</button>
                             </div>
                         </div>
-                        <div id="scanner-container" style="display:none;">
-                            <div id="interactive" class="viewport"></div>
-                            <button type="button" id="stop-scan-btn" class="btn" style="width:100%; margin-top:0.5rem; background-color: var(--danger-color);">راوەستاندن</button>
-                        </div>
                         <div class="form-group"><label for="product-name">ناڤێ بەرهەمی:</label><input type="text" id="product-name" required></div>
-                        <div class="form-group">
-                            <label for="product-supplier">دابینکەر:</label>
-                            <select id="product-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select>
-                         </div>
+                        <div class="form-group"><label for="product-supplier">دابینکەر:</label><select id="product-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select></div>
                         <div class="form-group"><label for="product-category">جورێ بەرهەمی:</label><input type="text" id="product-category" required></div>
                         <div class="form-group"><label for="product-quantity">کەمیا بەرهەمی (ب دانە):</label><input type="number" id="product-quantity" required></div>
                         <div class="form-group"><label for="product-cartons">ژمارا کارتونان (ئختیاری):</label><input type="number" id="product-cartons"></div>
@@ -323,15 +266,14 @@
                 </div>
                 <div class="admin-section">
                     <h2>لیستا بەرهەمان</h2>
-                    <div class="form-group"><input type="text" id="search-input" placeholder="لێگەریان ل گۆر ناڤێ بەرهەمی..."></div>
-                    <div id="product-list-wrapper"><div id="product-list-container"></div></div>
+                    <div class="form-group"><input type="text" id="search-input" placeholder="لێگەریان ل گۆر ناڤ یان بارکۆد..."></div>
+                    <div class="list-wrapper"><div id="product-list-container"></div></div>
                 </div>
             </div>
         </section>
 
-        <!-- دیمەنێ رێڤەبرنا دابینکەران -->
         <section id="suppliers-view" class="view">
-             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون</button>
             <div class="admin-layout">
                 <div class="admin-section">
                     <h2>زێدەکرنا دابینکەرەکێ نوی</h2>
@@ -343,97 +285,78 @@
                 </div>
                 <div class="admin-section">
                     <h2>لیستا دابینکەران</h2>
-                    <div id="supplier-list-container"></div>
+                    <div class="list-wrapper"><div id="supplier-list-container"></div></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="supplier-profile-view" class="view">
+            <button class="btn back-btn" data-target="suppliers-view">&#8592; پاشڤەچوون</button>
+            <div id="profile-content-container"></div>
+        </section>
+
+        <section id="purchases-view" class="view">
+            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون</button>
+            <div class="admin-layout">
+                <div class="admin-section">
+                    <h2>تۆمارکرنا کرینەکا نوی</h2>
+                    <form id="add-payment-form">
+                        <div class="form-group"><label for="payment-supplier">دابینکەر:</label><select id="payment-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select></div>
+                        <div class="form-group"><label for="payment-amount">کۆژمێ کرینێ (ب دینارێ عیراقی):</label><input type="number" id="payment-amount" required></div>
+                        <div class="form-group"><label for="payment-date">رووژا کرینێ:</label><input type="date" id="payment-date" required></div>
+                        <button type="submit" class="btn form-submit-btn">تۆمارکرنا کرینێ</button>
+                    </form>
+                </div>
+                <div class="admin-section">
+                    <h2>لیستا کرینان</h2>
+                    <div class="list-wrapper" id="payment-list-container"></div>
                 </div>
             </div>
         </section>
         
-        <!-- دیمەنێ رێڤەبرنا پارەدانان -->
-        <section id="payments-view" class="view">
-            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
+        <section id="debts-view" class="view">
+            <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون</button>
             <div class="admin-layout">
                 <div class="admin-section">
-                    <h2>زێدەکرنا پارەدانەکا نوو</h2>
-                    <form id="add-payment-form">
-                        <div class="form-group">
-                            <label for="payment-supplier">دابینکەر:</label>
-                            <select id="payment-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select>
-                        </div>
-                        <div class="form-group"><label for="payment-amount">کوژمێ پارەدانێ (ب دینارێ عیراقی):</label><input type="number" id="payment-amount" required></div>
-                        <div class="form-group"><label for="payment-date">رووژا پارەدانێ:</label><input type="date" id="payment-date" required></div>
-                        <button type="submit" class="btn form-submit-btn">تۆمارکرنا پارەدانێ</button>
+                    <h2 style="color: var(--danger-color); border-bottom-color: var(--danger-color);">رێڤەبرنا قەرزێن کومپانیان</h2>
+                    <form id="add-payable-form">
+                        <div class="form-group"><label for="payable-supplier">ناڤێ کومپانیێ:</label><select id="payable-supplier" required><option value="">دابینکەرەکێ هەلبژێرە</option></select></div>
+                        <div class="form-group"><label for="transaction-type">جورێ تۆمارکرنێ:</label><select id="transaction-type" required><option value="debt">تۆمارکرنا قەرزەکی نوی</option><option value="payment">دانەوەیا قەرزەکی</option></select></div>
+                        <div class="form-group"><label for="payable-amount">کوژمێ پارەی:</label><input type="number" id="payable-amount" required></div>
+                        <div class="form-group"><label for="payable-date">رووژ:</label><input type="date" id="payable-date" required></div>
+                        <div class="form-group"><label for="payable-notes">تێبینی:</label><textarea id="payable-notes" rows="2"></textarea></div>
+                        <button type="submit" class="btn form-submit-btn" style="background-color: var(--primary-color);">تۆمارکرن</button>
                     </form>
                 </div>
                 <div class="admin-section">
-                    <h2>لیستا پارەدانان</h2>
-                    <div id="payment-list-container"></div>
+                    <h2>لیستا قەرز و پارەدانان</h2>
+                    <div class="list-wrapper"><div id="payables-list-container"></div></div>
                 </div>
             </div>
         </section>
 
-        <!-- دیمەنێ ڕاپۆرتان -->
         <section id="reports-view" class="view">
-             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون بۆ سەرەکی</button>
-             
-             <div class="admin-section">
-                <h2>شرۆڤەکرنا گشتی</h2>
-                <div id="dashboard-summary-container"></div>
-             </div>
-
-             <div class="admin-section">
-                <h2>ڕاپۆرتا بهایێ گشتیێ کۆگەهێ</h2>
-                <div id="inventory-value-report-container"></div>
-            </div>
-
-            <div class="admin-section">
-                <h2>ڕاپۆرتا پارەدانێن دابینکەران</h2>
-                <div class="filter-buttons" id="payment-report-filters">
-                    <button class="btn filter-btn active" data-filter="all">هەمی دەم</button>
-                    <button class="btn filter-btn" data-filter="today">ئەڤرۆ</button>
-                    <button class="btn filter-btn" data-filter="week">ڤێ حەفتیێ</button>
-                    <button class="btn filter-btn" data-filter="month">ڤی هەیڤێ</button>
-                </div>
-                <div id="supplier-payments-report-container"></div>
-            </div>
-
-             <div class="admin-section">
-                <h2>ڕاپۆرتا کرینان ژ دابینکەران</h2>
-                <div id="supplier-purchases-report-container"></div>
-            </div>
-
-             <div class="admin-section">
-                <h2>ڕاپۆرتا قازانجا بەرهەمان (لدیڤ هەر دانەیەک)</h2>
-                <div id="product-profitability-report-container"></div>
-            </div>
-
-            <div class="admin-section">
-                <h2>ئاگەهداریا کێمبوونا ستۆکێ</h2>
-                <p>ئەو بەرهەمێن ژمارا وان ژ 10 دانان کێمترە.</p>
-                <div id="low-stock-report-container"></div>
-            </div>
-
-             <div class="admin-section">
-                <h2>بەرهەمێن نێزیک ل تاریخا خلاسبوونێ</h2>
-                <p>ئەو بەرهەمێن د 30 ڕۆژێن بهێت دا تاریخا وان ب دوماهیک دهێت.</p>
-                <div id="expiry-report-container"></div>
-            </div>
-             
-             <div class="admin-section">
-                <h2>ڕاپۆرتێن فرۆشتنێ</h2>
-                <div id="sales-report-container"></div>
-            </div>
+             <button class="btn back-btn" data-target="home-view">&#8592; پاشڤەچوون</button>
+             <div class="admin-section"><h2>شرۆڤەکرنا گشتی</h2><div id="dashboard-summary-container"></div></div>
+             <div class="admin-section"><h2>ڕاپۆرتا بهایێ گشتیێ کۆگەهێ</h2><div class="list-wrapper"><div id="inventory-value-report-container"></div></div></div>
+             <div class="admin-section"><h2>ڕاپۆرتا کرینان ژ دابینکەران</h2><div class="list-wrapper"><div id="supplier-purchases-report-container"></div></div></div>
+             <div class="admin-section"><h2>ڕاپۆرتا قازانجا بەرهەمان</h2><div class="list-wrapper"><div id="product-profitability-report-container"></div></div></div>
+             <div class="admin-section"><h2>ئاگەهداریا کێمبوونا ستۆکێ <small>(کێمتر ژ 10)</small></h2><div class="list-wrapper"><div id="low-stock-report-container"></div></div></div>
+             <div class="admin-section"><h2>بەرهەمێن نێزیک ب دوماهیک بێن <small>(د 30 ڕۆژان دا)</small></h2><div class="list-wrapper"><div id="expiry-report-container"></div></div></div>
         </section>
     </main>
+    
+    <div id="scanner-modal"><div id="scanner-modal-content"><h3>کامیرێ بەرامبەر بارکۆدی بگرە</h3><div id="scanner-reader"></div><button type="button" id="stop-scan-btn" class="btn danger-btn" style="width:100%; margin-top:1rem;">داخستن</button></div></div>
 
     <div id="toast"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script>
     // --- Firebase Configuration ---
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
         authDomain: "ibrrahim-alkurdi.firebaseapp.com",
         projectId: "ibrrahim-alkurdi",
-        storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
+        storageBucket: "ibrrahim-alkurdi.appspot.com",
         messagingSenderId: "490128006332",
         appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
         measurementId: "G-Q4VWN89L3R"
@@ -457,58 +380,49 @@
         const toast = document.getElementById('toast');
         const loader = document.getElementById('loader-overlay');
         
-        // Product Management Elements
+        // Product Management
         const addProductForm = document.getElementById('add-product-form');
         const productListContainer = document.getElementById('product-list-container');
         const barcodeInput = document.getElementById('barcode');
         const scanBtn = document.getElementById('scan-barcode-btn');
         const stopScanBtn = document.getElementById('stop-scan-btn');
-        const scannerContainer = document.getElementById('scanner-container');
+        const scannerModal = document.getElementById('scanner-modal');
         const searchInput = document.getElementById('search-input');
         
-        // Supplier Management Elements
+        // Supplier Management
         const addSupplierForm = document.getElementById('add-supplier-form');
         const supplierListContainer = document.getElementById('supplier-list-container');
         const productSupplierDropdown = document.getElementById('product-supplier');
-        const paymentSupplierDropdown = document.getElementById('payment-supplier');
-
-        // Payment Management Elements
+        const profileContainer = document.getElementById('profile-content-container');
+        
+        // Purchases Management
         const addPaymentForm = document.getElementById('add-payment-form');
         const paymentListContainer = document.getElementById('payment-list-container');
-        
-        // Danger Zone elements
-        const deleteTodayEntriesBtn = document.getElementById('delete-today-entries-btn');
+        const paymentSupplierDropdown = document.getElementById('payment-supplier');
 
-        // Reports Elements
+        // Debts Management
+        const addPayableForm = document.getElementById('add-payable-form');
+        const payablesListContainer = document.getElementById('payables-list-container');
+        const payableSupplierDropdown = document.getElementById('payable-supplier');
+
+        // Reports
         const dashboardSummaryContainer = document.getElementById('dashboard-summary-container');
         const lowStockReportContainer = document.getElementById('low-stock-report-container');
         const expiryReportContainer = document.getElementById('expiry-report-container');
-        const supplierPaymentsReportContainer = document.getElementById('supplier-payments-report-container');
         const inventoryValueReportContainer = document.getElementById('inventory-value-report-container');
-        const paymentReportFilters = document.getElementById('payment-report-filters');
         const supplierPurchasesReportContainer = document.getElementById('supplier-purchases-report-container');
         const productProfitabilityReportContainer = document.getElementById('product-profitability-report-container');
-        const salesReportContainer = document.getElementById('sales-report-container');
 
-        // --- Global Data Arrays (will be populated from Firestore) ---
-        let products = [];
-        let suppliers = [];
-        let payments = [];
-        let sales = [];
-        let currentBarcodeDocId = null; // Used for editing products
+        // --- Global Data Arrays ---
+        let products = [], suppliers = [], supplierLedger = [], payments = [];
+        let currentBarcodeDocId = null; 
+        let currentEditingPaymentId = null;
+        let html5QrCode = null;
         
-        // --- Enable Firebase Persistence for Offline Access ---
+        // --- Firebase Persistence ---
         firebase.firestore().enablePersistence({synchronizeTabs:true})
-            .then(() => {
-                console.log("Offline persistence enabled");
-            })
-            .catch((err) => {
-                if (err.code == 'failed-precondition') {
-                    console.warn('Firebase persistence failed. Please close other tabs.');
-                } else if (err.code == 'unimplemented') {
-                    console.warn('Firebase persistence is not available in this browser.');
-                }
-            });
+            .then(() => console.log("Offline persistence enabled"))
+            .catch(err => console.warn(err.code === 'failed-precondition' ? 'Persistence failed.' : 'Persistence not available.'));
 
         // --- Utility Functions ---
         function showToast(message, type = 'success') {
@@ -518,8 +432,8 @@
 
         function switchView(viewId) {
             allViews.forEach(v => v.classList.remove('active'));
-            const newView = document.getElementById(viewId);
-            if (newView) newView.classList.add('active');
+            document.getElementById(viewId)?.classList.add('active');
+            window.scrollTo(0, 0);
         }
 
         function formatCurrency(number) {
@@ -531,6 +445,11 @@
             loader.style.opacity = '0';
             setTimeout(() => { loader.style.display = 'none'; }, 300);
         }
+        
+        function showLoader() {
+            loader.style.display = 'flex';
+            loader.style.opacity = '1';
+        }
 
         // --- Firebase Auth Listener ---
         auth.onAuthStateChanged(user => {
@@ -541,29 +460,24 @@
                         loadInitialDataAndReports();
                     } else {
                         showToast('تو ڕێگەپێدراو نینین بۆ چونە ژوورەوە وەک ئەدمین.', 'danger');
-                        auth.signOut();
-                        hideLoader();
+                        auth.signOut(); hideLoader();
                     }
                 }).catch(error => {
                     console.error("Error getting user role:", error);
                     showToast('خەلەتی د وەرگرتنا ڕۆڵا بکارهێنەری دا.', 'danger');
-                    auth.signOut();
-                    hideLoader();
+                    auth.signOut(); hideLoader();
                 });
             } else {
-                switchView('login-view');
-                hideLoader();
+                switchView('login-view'); hideLoader();
             }
         });
 
         // --- Authentication Logic ---
-        loginForm.addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async e => {
             e.preventDefault();
-            loader.style.display = 'flex';
-            const email = emailInput.value;
-            const password = passwordInput.value;
+            showLoader();
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                await auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value);
             } catch (error) {
                 showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger');
                 hideLoader();
@@ -574,59 +488,39 @@
             try {
                 await auth.signOut();
                 showToast('ب سەرکەفتی چوویە دەرڤە.', 'success');
-                products = []; suppliers = []; payments = []; sales = [];
-                productListContainer.innerHTML = '';
-                supplierListContainer.innerHTML = '';
-                paymentListContainer.innerHTML = '';
-                dashboardSummaryContainer.innerHTML = '';
-                inventoryValueReportContainer.innerHTML = '';
-                supplierPaymentsReportContainer.innerHTML = '';
-                supplierPurchasesReportContainer.innerHTML = '';
-                productProfitabilityReportContainer.innerHTML = '';
-                lowStockReportContainer.innerHTML = '';
-                expiryReportContainer.innerHTML = '';
-                salesReportContainer.innerHTML = '';
+                products = []; suppliers = []; supplierLedger = []; payments = [];
+                const containers = [productListContainer, supplierListContainer, dashboardSummaryContainer, inventoryValueReportContainer, supplierPurchasesReportContainer, productProfitabilityReportContainer, lowStockReportContainer, expiryReportContainer, payablesListContainer, paymentListContainer];
+                containers.forEach(c => c.innerHTML = '');
             } catch (error) {
                 showToast(`خەلەتی د چونە دەرڤە دا: ${error.message}`, 'danger');
             }
         });
 
-        // --- Navigation Logic ---
-        homeIcons.forEach(icon => {
-            icon.addEventListener('click', () => {
-                const targetViewId = icon.getAttribute('data-target');
-                switchView(targetViewId);
-            });
-        });
-
-        backButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetViewId = button.getAttribute('data-target');
-                switchView(targetViewId);
-            });
-        });
+        // --- Navigation ---
+        homeIcons.forEach(icon => icon.addEventListener('click', () => switchView(icon.getAttribute('data-target'))));
+        backButtons.forEach(button => button.addEventListener('click', () => switchView(button.getAttribute('data-target'))));
         
-        // --- Product Management (Firebase Integration) ---
-        function renderAdminList(searchText = '') {
-            productListContainer.innerHTML = '';
-            const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
+        // --- Product Management ---
+        function renderAdminList(data, container) {
+            const productData = data || products;
+            const targetContainer = container || productListContainer;
 
-            if (filteredProducts.length === 0) {
-                productListContainer.innerHTML = '<p>چ بەرهەم نەهاتنە دیتن.</p>'; return;
+            if (productData.length === 0) {
+                targetContainer.innerHTML = '<p style="text-align:center; color:#777;">چ بەرهەم نەهاتنە دیتن.</p>'; return;
             }
             const table = document.createElement('table');
             table.innerHTML = `
                 <thead><tr>
-                    <th>بارکۆد</th><th>ناڤ</th><th>دابینکەر</th><th>جور</th><th>کەمى (دانە)</th><th>کارتون</th>
-                    <th>تاریخا خلاسبوونێ</th><th>ژ. وەجبێ</th><th class="price-col purchase">بهایێ کرینێ</th>
-                    <th class="price-col selling">بهایێ فرۆتنێ</th><th class="price-col profit">قازانج</th><th>کریار</th>
+                    <th>بارکۆد</th><th>ناڤ</th><th>دابینکەر</th><th>جور</th><th>کەمى</th><th>کارتون</th>
+                    <th>تاریخا خلاسبوونێ</th><th class="price-col purchase">ب. کرینێ</th>
+                    <th class="price-col selling">ب. فرۆتنێ</th><th class="price-col profit">قازانج</th><th>کریار</th>
                 </tr></thead>
-                <tbody>${filteredProducts.map(p => {
+                <tbody>${productData.map(p => {
                     const profit = (parseInt(p.sellingPrice) - parseInt(p.purchasePrice)) || 0;
                     return `
                     <tr>
-                        <td>${p.barcode}</td><td>${p.name}</td><td>${p.supplier || 'N/A'}</td><td>${p.category}</td><td>${p.quantity}</td>
-                        <td>${p.cartons || 'N/A'}</td><td>${p.expiryDate}</td><td>${p.batchNumber || 'N/A'}</td>
+                        <td>${p.barcode}</td><td>${p.name}</td><td>${p.supplier||'N/A'}</td><td>${p.category}</td><td>${p.quantity}</td>
+                        <td>${p.cartons||'N/A'}</td><td>${p.expiryDate}</td>
                         <td class="price-col purchase">${formatCurrency(p.purchasePrice)}</td>
                         <td class="price-col selling">${formatCurrency(p.sellingPrice)}</td>
                         <td class="price-col profit">${formatCurrency(profit)}</td>
@@ -635,17 +529,15 @@
                            <button class="action-btn delete-btn" data-docid="${p.id}">&#10005;</button>
                         </td>
                     </tr>`
-                }).join('')}
-                </tbody>`;
-            productListContainer.appendChild(table);
+                }).join('')}</tbody>`;
+            targetContainer.innerHTML = ''; targetContainer.appendChild(table);
         }
 
         addProductForm.addEventListener('submit', async e => {
             e.preventDefault();
             const barcode = barcodeInput.value;
             const productData = {
-                barcode: barcode,
-                name: document.getElementById('product-name').value,
+                barcode: barcode, name: document.getElementById('product-name').value,
                 purchasePrice: parseInt(document.getElementById('product-purchase-price').value),
                 sellingPrice: parseInt(document.getElementById('product-selling-price').value),
                 category: document.getElementById('product-category').value,
@@ -655,162 +547,184 @@
                 batchNumber: document.getElementById('product-batch-number').value,
                 supplier: productSupplierDropdown.value
             };
-            
             try {
                 if (currentBarcodeDocId) {
                     await db.collection('products').doc(currentBarcodeDocId).update(productData);
                     showToast('داتایێن بەرهەمی هاتنە نویکرن');
                 } else {
-                    const existingProduct = products.find(p => p.barcode === barcode);
-                    if (existingProduct) {
-                         showToast('ئەڤ بارکۆدە ژ بەری نوکە بۆ بەرهەمەکێ دی هاتیە تۆمارکرن!', 'danger');
-                         return;
+                    if (products.find(p => p.barcode === barcode)) {
+                         showToast('ئەڤ بارکۆدە ژ بەری نوکە هاتیە تۆمارکرن!', 'danger'); return;
                     }
                     productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
                     await db.collection('products').add(productData);
                     showToast('بەرهەم ب سەرکەفتی هـاتە زێـدەکرن');
                 }
-                addProductForm.reset();
-                currentBarcodeDocId = null; 
-                barcodeInput.readOnly = false;
-            } catch (error) {
-                showToast(`خەلەتی: ${error.message}`, 'danger');
-                console.error("Error adding/updating product:", error);
-            }
+                addProductForm.reset(); currentBarcodeDocId = null; barcodeInput.readOnly = false;
+                document.getElementById('product-expiry-date').valueAsDate = new Date();
+            } catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
         });
 
-        searchInput.addEventListener('input', (e) => { renderAdminList(e.target.value); });
+        searchInput.addEventListener('input', e => {
+             const filteredProducts = products.filter(p => p.name.toLowerCase().includes(e.target.value.toLowerCase()) || p.barcode.includes(e.target.value));
+             renderAdminList(filteredProducts, productListContainer);
+        });
 
         productListContainer.addEventListener('click', async e => {
             const target = e.target.closest('.action-btn'); if (!target) return;
             const docId = target.getAttribute('data-docid');
+            const product = products.find(p => p.id === docId);
+            if (!product) return;
             
             if (target.classList.contains('delete-btn')) {
-                const productToDelete = products.find(p => p.id === docId);
-                if (!productToDelete) return;
-                const confirmation = prompt(`بۆ پشتراستکرنا ژێبرنێ، ناڤێ بەرهەمی بنڤیسە: "${productToDelete.name}"`);
-                if (confirmation === productToDelete.name) {
-                    try {
-                        await db.collection('products').doc(docId).delete();
-                        showToast('بەرهەم هاتە ژێبرن', 'danger');
-                    } catch (error) {
-                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                    }
-                } else if (confirmation !== null) {
-                    showToast('ناڤێ هاتناڤکرن هەڤبەر نەبوو. ژێبرن هاتە راوەستاندن.', 'danger');
-                }
+                if (prompt(`بۆ پشتراستکرنێ، ناڤێ بەرهەمی بنڤیسە: "${product.name}"`) === product.name) {
+                    try { await db.collection('products').doc(docId).delete(); showToast('بەرهەم هاتە ژێبرن', 'danger'); } 
+                    catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
+                } else if (name !== null) { showToast('ژێبرن هاتە راوەستاندن.', 'danger'); }
             } else if (target.classList.contains('edit-btn')) {
-                const productToEdit = products.find(p => p.id === docId);
-                if (!productToEdit) return;
-
-                barcodeInput.value = productToEdit.barcode;
-                document.getElementById('product-name').value = productToEdit.name;
-                document.getElementById('product-purchase-price').value = productToEdit.purchasePrice;
-                document.getElementById('product-selling-price').value = productToEdit.sellingPrice;
-                document.getElementById('product-category').value = productToEdit.category;
-                document.getElementById('product-quantity').value = productToEdit.quantity;
-                document.getElementById('product-cartons').value = productToEdit.cartons;
-                document.getElementById('product-expiry-date').value = productToEdit.expiryDate;
-                document.getElementById('product-batch-number').value = productToEdit.batchNumber;
-                productSupplierDropdown.value = productToEdit.supplier;
-
-                currentBarcodeDocId = docId;
-                barcodeInput.readOnly = true;
-                showToast('داتایێن بەرهەمی هاتنە ئینان. نوکە دشێی نویکەی.');
-                window.scrollTo(0, 0);
+                barcodeInput.value = product.barcode;
+                document.getElementById('product-name').value = product.name;
+                document.getElementById('product-purchase-price').value = product.purchasePrice;
+                document.getElementById('product-selling-price').value = product.sellingPrice;
+                document.getElementById('product-category').value = product.category;
+                document.getElementById('product-quantity').value = product.quantity;
+                document.getElementById('product-cartons').value = product.cartons;
+                document.getElementById('product-expiry-date').value = product.expiryDate;
+                document.getElementById('product-batch-number').value = product.batchNumber;
+                productSupplierDropdown.value = product.supplier;
+                currentBarcodeDocId = docId; barcodeInput.readOnly = true;
+                showToast('داتایێن بەرهەمی هاتنە ئینان.'); window.scrollTo(0, 0);
             }
         });
 
-        // --- Supplier Management ---
+        // --- Supplier Management & Profile ---
         function renderSuppliersList() {
-            supplierListContainer.innerHTML = '';
-             if (suppliers.length === 0) {
-                supplierListContainer.innerHTML = '<p>چ دابینکەر نەهاتنە تۆمارکرن.</p>'; return;
+            if (suppliers.length === 0) {
+                supplierListContainer.innerHTML = '<p style="text-align:center; color:#777;">چ دابینکەر نەهاتنە تۆمارکرن.</p>'; return;
             }
             const table = document.createElement('table');
             table.innerHTML = `
-                <thead><tr><th>ناڤێ دابینکەری</th><th>زانیاریێن پەیوەندیێ</th><th>کریار</th></tr></thead>
-                <tbody>
-                    ${suppliers.map(sup => `
+                <thead><tr><th>ناڤێ دابینکەری</th><th>پەیوەندی</th><th>بالانسا قەرزان</th><th>کریار</th></tr></thead>
+                <tbody>${suppliers.map(sup => {
+                    const balance = supplierLedger.filter(l => l.supplierName === sup.name)
+                                           .reduce((acc, curr) => acc + (curr.type === 'debt' ? curr.amount : -curr.amount), 0);
+                    const balanceClass = balance > 0 ? 'purchase' : 'selling';
+                    return `
                         <tr>
-                            <td>${sup.name}</td><td>${sup.contact || 'N/A'}</td>
-                            <td><button class="action-btn delete-btn" data-docid="${sup.id}">&#10005;</button></td>
-                        </tr>`).join('')}
+                            <td>${sup.name}</td>
+                            <td>${sup.contact||'N/A'}</td>
+                            <td class="price-col ${balanceClass}">${formatCurrency(balance)}</td>
+                            <td>
+                                <button class="btn profile-btn" data-supplier-id="${sup.id}" data-supplier-name="${sup.name}">پروفایل</button>
+                                <button class="action-btn delete-btn" data-docid="${sup.id}">&#10005;</button>
+                            </td>
+                        </tr>`
+                    }).join('')}
                 </tbody>`;
-            supplierListContainer.appendChild(table);
+            supplierListContainer.innerHTML = ''; supplierListContainer.appendChild(table);
         }
 
         function populateSuppliersDropdowns() {
-            const currentProductSupplier = productSupplierDropdown.value;
-            const currentPaymentSupplier = paymentSupplierDropdown.value;
-            productSupplierDropdown.innerHTML = '<option value="">دابینکەرەکێ هەلبژێرە</option>';
-            paymentSupplierDropdown.innerHTML = '<option value="">دابینکەرەکێ هەلبژێرە</option>';
-            suppliers.forEach(sup => {
-                const option1 = document.createElement('option'); option1.value = sup.name; option1.textContent = sup.name;
-                const option2 = option1.cloneNode(true);
-                productSupplierDropdown.appendChild(option1);
-                paymentSupplierDropdown.appendChild(option2);
-            });
-            productSupplierDropdown.value = currentProductSupplier;
-            paymentSupplierDropdown.value = currentPaymentSupplier;
+            const optionsHTML = '<option value="">دابینکەرەکێ هەلبژێرە</option>' + suppliers.map(sup => `<option value="${sup.name}">${sup.name}</option>`).join('');
+            productSupplierDropdown.innerHTML = optionsHTML;
+            payableSupplierDropdown.innerHTML = optionsHTML;
+            paymentSupplierDropdown.innerHTML = optionsHTML;
+        }
+
+        function showSupplierProfile(supplierId, supplierName) {
+            const supplier = suppliers.find(s => s.id === supplierId);
+            if (!supplier) { showToast('دابینکەر نەهاتە دیتن', 'danger'); return; }
+
+            const supplierProducts = products.filter(p => p.supplier === supplierName);
+            const supplierTransactions = supplierLedger.filter(t => t.supplierName === supplierName).sort((a,b) => new Date(b.date) - new Date(a.date));
+            const supplierPurchases = payments.filter(p => p.supplierName === supplierName).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            const balance = supplierTransactions.reduce((acc, curr) => acc + (curr.type === 'debt' ? curr.amount : -curr.amount), 0);
+            
+            profileContainer.innerHTML = `
+                <div class="profile-header">
+                    <h2>${supplier.name}</h2><p>${supplier.contact || 'پەیوەندی نینە'}</p>
+                    <div class="profile-balance-card">
+                        <div class="balance-label">بالانسا گشتی یا قەرزان</div>
+                        <div class="balance-amount ${balance > 0 ? 'negative' : 'positive'}">${formatCurrency(balance)}</div>
+                        <div class="balance-status">${balance > 0 ? 'کومپانی قەرزدارە' : 'قەرز لێ نینە'}</div>
+                    </div>
+                </div>
+                <div class="profile-section"><h3>تۆمارا قەرز و پارەدانان</h3><div class="profile-section-content list-wrapper">${renderLedgerTable(supplierTransactions, false)}</div></div>
+                <div class="profile-section"><h3>تۆمارا کرینان</h3><div class="profile-section-content list-wrapper">${renderPurchasesTable(supplierPurchases)}</div></div>
+                <div class="profile-section"><h3>بەرهەمێن ڤی دابینکەری</h3><div class="profile-section-content list-wrapper">${renderProductsTable(supplierProducts)}</div></div>
+            `;
+            switchView('supplier-profile-view');
+        }
+
+        function renderProductsTable(productData) {
+            if (productData.length === 0) return '<p class="no-data">چ بەرهەم ژ لایێ ڤی دابینکەری ڤە نەهاتینە تۆمارکرن.</p>';
+            return `<table>
+                <thead><tr><th>ناڤ</th><th>کەمى</th><th>بهایێ کرینێ</th><th>بهایێ فرۆتنێ</th></tr></thead>
+                <tbody>${productData.map(p => `
+                    <tr><td>${p.name}</td><td>${p.quantity}</td>
+                    <td class="price-col purchase">${formatCurrency(p.purchasePrice)}</td>
+                    <td class="price-col selling">${formatCurrency(p.sellingPrice)}</td></tr>
+                `).join('')}</tbody>
+            </table>`;
+        }
+
+        function renderPurchasesTable(purchaseData) {
+            if (purchaseData.length === 0) return '<p class="no-data">چ کرین ژ ڤی دابینکەری نەهاتینە تۆمارکرن.</p>';
+            return `<table>
+                <thead><tr><th>کۆژمێ کرینێ</th><th>رووژا کرینێ</th></tr></thead>
+                <tbody>${purchaseData.map(p => `
+                    <tr><td class="price-col purchase">${formatCurrency(p.amount)}</td><td>${p.date}</td></tr>
+                `).join('')}</tbody>
+            </table>`;
         }
         
         addSupplierForm.addEventListener('submit', async e => {
             e.preventDefault();
             const name = document.getElementById('supplier-name').value;
-            const contact = document.getElementById('supplier-contact').value;
             if (suppliers.find(s => s.name.toLowerCase() === name.toLowerCase())) {
                 showToast('ئەڤ دابینکەرە بەری نوکە هاتیە تۆمارکرن!', 'danger'); return;
             }
             try {
-                await db.collection('suppliers').add({ name, contact, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                showToast('دابینکەر ب سەرکەفتی هاتە زێدەکرن');
-                addSupplierForm.reset();
-            } catch (error) {
-                showToast(`خەلەتی: ${error.message}`, 'danger');
-            }
+                await db.collection('suppliers').add({ name, contact: document.getElementById('supplier-contact').value, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast('دابینکەر ب سەرکەفتی هاتە زێدەکرن'); addSupplierForm.reset();
+            } catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
         });
 
         supplierListContainer.addEventListener('click', async e => {
-            if (e.target.closest('.delete-btn')) {
-                const docId = e.target.closest('.delete-btn').getAttribute('data-docid');
-                const supplierToDelete = suppliers.find(s => s.id === docId);
-                if (!supplierToDelete) return;
-
-                const confirmation = prompt(`بۆ پشتراستکرنێ، ناڤێ دابینکەری بنڤیسە: "${supplierToDelete.name}"`);
-                if (confirmation === supplierToDelete.name) {
-                    try {
-                        await db.collection('suppliers').doc(docId).delete();
-                        showToast('دابینکەر هاتە ژێبرن', 'danger');
-                    } catch (error) {
-                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                    }
-                } else if (confirmation !== null) {
-                     showToast('ناڤێ هاتناڤکرن هەڤبەر نەبوو. ژێبرن هاتە راوەستاندن.', 'danger');
-                }
+            const target = e.target;
+            if (target.classList.contains('profile-btn')) {
+                const supplierId = target.getAttribute('data-supplier-id');
+                const supplierName = target.getAttribute('data-supplier-name');
+                showSupplierProfile(supplierId, supplierName);
+            } else if (target.closest('.delete-btn')) {
+                const deleteButton = target.closest('.delete-btn');
+                const docId = deleteButton.getAttribute('data-docid');
+                const supplier = suppliers.find(s => s.id === docId);
+                if (!supplier) return;
+                if (prompt(`بۆ پشتراستکرنێ، ناڤێ دابینکەری بنڤیسە: "${supplier.name}"`) === supplier.name) {
+                    try { await db.collection('suppliers').doc(docId).delete(); showToast('دابینکەر هاتە ژێبرن', 'danger'); } 
+                    catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
+                } else if (name !== null) { showToast('ژێبرن هاتە راوەستاندن.', 'danger'); }
             }
         });
-        
-        // --- Payment Management ---
+
+        // --- Purchases Management ---
         function renderPaymentsList() {
-            paymentListContainer.innerHTML = '';
             const sortedPayments = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date));
             if (sortedPayments.length === 0) {
-                paymentListContainer.innerHTML = '<p>چ پارەدان نەهاتنە تۆمارکرن.</p>'; return;
+                paymentListContainer.innerHTML = '<p style="text-align:center; color:#777;">چ کرین نەهاتنە تۆمارکرن.</p>'; return;
             }
             const table = document.createElement('table');
             table.innerHTML = `
-                <thead><tr><th>دابینکەر</th><th>کوژمێ پارەدانێ</th><th>رووژ</th><th>کریار</th></tr></thead>
-                <tbody>
-                    ${sortedPayments.map(p => `
-                        <tr>
-                            <td>${p.supplierName}</td>
-                            <td class="price-col purchase">${formatCurrency(p.amount)}</td>
-                            <td>${p.date}</td>
-                            <td><button class="action-btn delete-btn" data-docid="${p.id}">&#10005;</button></td>
-                        </tr>`).join('')}
+                <thead><tr><th>دابینکەر</th><th>کوژمێ کرینێ</th><th>رووژ</th><th>کریار</th></tr></thead>
+                <tbody>${sortedPayments.map(p => `
+                    <tr><td>${p.supplierName}</td><td class="price-col purchase">${formatCurrency(p.amount)}</td><td>${p.date}</td>
+                    <td>
+                        <button class="action-btn edit-btn" data-docid="${p.id}">&#9998;</button>
+                        <button class="action-btn delete-btn" data-docid="${p.id}">&#10005;</button>
+                    </td></tr>`).join('')}
                 </tbody>`;
-            paymentListContainer.appendChild(table);
+            paymentListContainer.innerHTML = ''; paymentListContainer.appendChild(table);
         }
 
         addPaymentForm.addEventListener('submit', async e => {
@@ -818,440 +732,278 @@
             const paymentData = {
                 supplierName: document.getElementById('payment-supplier').value,
                 amount: parseInt(document.getElementById('payment-amount').value),
-                date: document.getElementById('payment-date').value,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                date: document.getElementById('payment-date').value
             };
             try {
-                await db.collection('payments').add(paymentData);
-                showToast('پارەدان ب سەرکەفتی هاتە تۆمارکرن');
+                if (currentEditingPaymentId) {
+                    await db.collection('payments').doc(currentEditingPaymentId).update(paymentData);
+                    showToast('کرین ب سەرکەفتی هاتە نویکرن');
+                    currentEditingPaymentId = null;
+                } else {
+                    paymentData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('payments').add(paymentData);
+                    showToast('کرین ب سەرکەفتی هاتە تۆمارکرن');
+                }
                 addPaymentForm.reset();
-            } catch (error) {
-                showToast(`خەلەتی: ${error.message}`, 'danger');
-            }
+                document.getElementById('payment-date').valueAsDate = new Date();
+            } catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
         });
 
         paymentListContainer.addEventListener('click', async e => {
-            if (e.target.closest('.delete-btn')) {
-                const docId = e.target.closest('.delete-btn').getAttribute('data-docid');
-                 if (confirm('تو پشتراستی دخوازی ڤێ پارەدانێ ژێببەی؟')) {
-                    try {
-                        await db.collection('payments').doc(docId).delete();
-                        showToast('پارەدان هاتە ژێبرن', 'danger');
-                    } catch (error) {
-                        showToast(`خەلەتی د ژێبرنێ دا: ${error.message}`, 'danger');
-                    }
+            const target = e.target.closest('.action-btn'); if (!target) return;
+            const docId = target.getAttribute('data-docid');
+
+            if (target.classList.contains('delete-btn')) {
+                if (confirm('تو پشتراستی دخوازی ڤێ کرینێ ژێببەی؟')) {
+                    try { await db.collection('payments').doc(docId).delete(); showToast('کرین هاتە ژێبرن', 'danger'); } 
+                    catch (error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
                 }
+            } else if (target.classList.contains('edit-btn')) {
+                const payment = payments.find(p => p.id === docId);
+                if (!payment) return;
+                document.getElementById('payment-supplier').value = payment.supplierName;
+                document.getElementById('payment-amount').value = payment.amount;
+                document.getElementById('payment-date').value = payment.date;
+                currentEditingPaymentId = docId;
+                showToast('داتایێن کرینێ هاتنە ئینان.');
+                document.getElementById('add-payment-form').scrollIntoView({ behavior: 'smooth' });
             }
         });
+        
+        // --- Debts Management ---
+        function renderLedgerTable(data, showSupplier = true) {
+            if (data.length === 0) {
+                return '<p class="no-data">چ تۆمار نەهاتنە دیتن.</p>';
+            }
+            const table = `<table>
+                <thead><tr>
+                    ${showSupplier ? '<th>دابینکەر</th>' : ''}
+                    <th>جور</th><th>کوژمە</th><th>رووژ</th><th>تێبینی</th><th>کریار</th>
+                </tr></thead>
+                <tbody>${data.map(d => {
+                    const typeText = d.type === 'debt' ? 'قەرز' : 'پارەدان';
+                    const colorClass = d.type === 'debt' ? 'purchase' : 'selling';
+                    return `
+                    <tr>
+                        ${showSupplier ? `<td>${d.supplierName}</td>` : ''}
+                        <td>${typeText}</td>
+                        <td class="price-col ${colorClass}">${formatCurrency(d.amount)}</td>
+                        <td>${d.date}</td>
+                        <td>${d.notes || 'N/A'}</td>
+                        <td><button class="action-btn delete-btn" data-docid="${d.id}">&#10005;</button></td>
+                    </tr>`
+                }).join('')}</tbody>
+            </table>`;
+            return table;
+        }
 
-        // --- DANGER ZONE LOGIC ---
-        deleteTodayEntriesBtn.addEventListener('click', async () => {
-            const CONFIRM_KEYWORD = "ژێبرن";
+        function renderPayablesList() {
+            const sortedData = [...supplierLedger].sort((a, b) => new Date(b.date) - new Date(a.date));
+             payablesListContainer.innerHTML = renderLedgerTable(sortedData, true);
+        }
 
-            const keyword = prompt(`هشدار: ئەڤ کرارە دێ هەمی بەرهەم، پارەدان و دابینکەرێن کو ئەڤرۆ هاتینە زێدەکرن ژێببەت.\n\nڤێ کرارێ نکارین پاشڤە ب زڤرینین.\n\nبۆ بەردەوامبوونێ، بنڤیسە: ${CONFIRM_KEYWORD}`);
-            if (keyword !== CONFIRM_KEYWORD) {
-                showToast('کۆدێ خەلەت. کرار هاتە راوەستاندن.', 'danger');
-                return;
+        addPayableForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const data = {
+                supplierName: document.getElementById('payable-supplier').value,
+                type: document.getElementById('transaction-type').value,
+                amount: parseInt(document.getElementById('payable-amount').value),
+                date: document.getElementById('payable-date').value,
+                notes: document.getElementById('payable-notes').value,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (!data.supplierName || !data.amount || !data.date) {
+                showToast('تکایە هەمی خانان پڕ بکە', 'danger'); return;
             }
 
-            if (!confirm("تو ژ %100 پشتراستی؟ هەمی تۆمارێن ئەڤرۆ دێ هێنە ژێبرن.")) {
-                showToast('کرار هاتە راوەستاندن.', 'danger');
-                return;
-            }
-
-            if (!confirm("پشتراستکرنا دووماهیێ: بۆ ژێبرنا هەمی تۆمارێن ئەڤرۆ 'OK' کلیک بکە.")) {
-                 showToast('کرار هاتە راوەستاندن.', 'danger');
-                return;
-            }
-            
-            loader.style.display = 'flex';
             try {
-                const now = new Date();
-                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                
-                const collectionsToDelete = ['products', 'suppliers', 'payments'];
-                const batch = db.batch();
-                let deleteCount = 0;
-
-                for (const collectionName of collectionsToDelete) {
-                    const querySnapshot = await db.collection(collectionName).where('createdAt', '>=', startOfDay).get();
-                    querySnapshot.forEach(doc => {
-                        batch.delete(doc.ref);
-                        deleteCount++;
-                    });
-                }
-                
-                if (deleteCount > 0) {
-                    await batch.commit();
-                    showToast(`ب سەرکەفتی ${deleteCount} تۆمارێن ئەڤرۆ هاتنە ژێبرن.`, 'success');
-                } else {
-                    showToast('چ تۆمارێن ئەڤرۆ نەهاتنە دیتن بۆ ژێبرنێ.', 'success');
-                }
-
-            } catch (error) {
-                console.error("Error deleting today's entries:", error);
-                showToast(`خەلەتیەکا مەزن د ژێبرنێ دا روویدا: ${error.message}`, 'danger');
-            } finally {
-                hideLoader();
+                await db.collection('supplier_ledger').add(data); 
+                showToast('تۆمار ب سەرکەفتی هاتە زێدەکرن');
+                addPayableForm.reset();
+                document.getElementById('payable-date').valueAsDate = new Date();
+            }
+            catch(error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
+        });
+        
+        payablesListContainer.addEventListener('click', async (e) => {
+            const target = e.target.closest('.delete-btn'); if (!target) return;
+            const docId = target.getAttribute('data-docid');
+            if (confirm('تو پشتراستی دخوازی ڤی تۆماری ژێببەی؟')) {
+                try { await db.collection('supplier_ledger').doc(docId).delete(); showToast('تۆمار هاتە ژێبرن', 'danger'); }
+                catch(error) { showToast(`خەلەتی: ${error.message}`, 'danger'); }
             }
         });
 
         // --- Reports Section ---
-        function renderAllReports(paymentFilter = 'all') {
-            renderDashboardSummary();
-            renderInventoryValueReport();
-            renderSupplierPaymentsReport(paymentFilter);
-            renderSupplierPurchasesReport();
-            renderProductProfitabilityReport();
-            renderLowStockReport();
+        function renderAllReports() {
+            renderDashboardSummary(); renderInventoryValueReport();
+            renderSupplierPurchasesReport(); renderProductProfitabilityReport(); renderLowStockReport();
             renderNearExpiryReport();
-            renderSalesReport();
         }
-        
-        paymentReportFilters.addEventListener('click', e => {
-            if (e.target.tagName === 'BUTTON') {
-                document.querySelectorAll('#payment-report-filters .btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                const filter = e.target.getAttribute('data-filter');
-                renderSupplierPaymentsReport(filter);
-            }
-        });
         
         function renderDashboardSummary() {
             const totalProducts = products.length;
             const totalSuppliers = suppliers.length;
-            const totalPayments = payments.reduce((sum, p) => sum + parseInt(p.amount), 0);
-            const lowStockCount = products.filter(p => parseInt(p.quantity) <= 10).length;
-            const totalSalesRevenue = sales.reduce((sum, s) => sum + parseInt(s.totalAmount), 0);
-
-            const today = new Date();
-            const expiryLimitDate = new Date();
-            expiryLimitDate.setDate(today.getDate() + 30);
-            const nearExpiryCount = products.filter(p => {
-                if (!p.expiryDate) return false;
-                const expiryDate = new Date(p.expiryDate);
-                const pDate = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-                const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                const limitDate = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
-                return pDate <= limitDate && pDate >= todayDate;
-            }).length;
+            const totalDebt = supplierLedger.reduce((acc, curr) => acc + (curr.type === 'debt' ? curr.amount : -curr.amount), 0);
+            const totalPurchases = payments.reduce((sum, p) => sum + p.amount, 0);
+            const lowStockCount = products.filter(p => p.quantity <= 10).length;
+            const today = new Date(); const expiryLimitDate = new Date(); expiryLimitDate.setDate(today.getDate() + 30);
+            const nearExpiryCount = products.filter(p => p.expiryDate && new Date(p.expiryDate) <= expiryLimitDate && new Date(p.expiryDate) >= today).length;
 
             dashboardSummaryContainer.innerHTML = `
                 <div class="dashboard-grid">
                     <div class="dashboard-card"><h3>ژمارا بەرهەمان</h3><div class="value">${totalProducts}</div></div>
                     <div class="dashboard-card"><h3>ژمارا دابینکەران</h3><div class="value">${totalSuppliers}</div></div>
-                    <div class="dashboard-card"><h3>کۆژمێ پارەدانان</h3><div class="value">${formatCurrency(totalPayments)}</div></div>
-                    <div class="dashboard-card"><h3>کۆژمێ گشتیێ فرۆشتنێ</h3><div class="value">${formatCurrency(totalSalesRevenue)}</div></div>
+                    <div class="dashboard-card"><h3>کۆژمێ گشتیێ کرینان</h3><div class="value">${formatCurrency(totalPurchases)}</div></div>
+                    <div class="dashboard-card"><h3>کۆژمێ گشتیێ قەرزان</h3><div class="value">${formatCurrency(totalDebt)}</div></div>
                     <div class="dashboard-card"><h3>بەرهەمێن ستۆک کێم</h3><div class="value">${lowStockCount}</div></div>
                     <div class="dashboard-card"><h3>بەرهەمێن نێزیک ب دوماهیک بێن</h3><div class="value">${nearExpiryCount}</div></div>
                 </div>`;
         }
 
         function renderInventoryValueReport() {
-            const totalPurchaseValue = products.reduce((sum, p) => sum + (parseInt(p.purchasePrice || 0) * parseInt(p.quantity || 0)), 0);
-            const totalSellingValue = products.reduce((sum, p) => sum + (parseInt(p.sellingPrice || 0) * parseInt(p.quantity || 0)), 0);
-            const potentialProfit = totalSellingValue - totalPurchaseValue;
-            
-            inventoryValueReportContainer.innerHTML = `
-                <table style="text-align:center;">
-                    <thead><tr><th>جورێ بهای</th><th>کۆژمێ گشتی</th></tr></thead>
-                    <tbody>
-                        <tr><td>کۆژمێ گشتیێ کرینێ</td><td class="price-col purchase">${formatCurrency(totalPurchaseValue)}</td></tr>
-                        <tr><td>کۆژمێ گشتیێ فرۆتنێ</td><td class="price-col selling">${formatCurrency(totalSellingValue)}</td></tr>
-                        <tr><td>قازانجا چاوەرێکری</td><td class="price-col profit">${formatCurrency(potentialProfit)}</td></tr>
-                    </tbody>
-                </table>`;
-        }
-        
-        function renderSupplierPaymentsReport(filter) {
-            let filteredPayments = payments;
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-            if (filter === 'today') {
-                filteredPayments = payments.filter(p => {
-                    const paymentDate = new Date(p.date);
-                    return paymentDate.getFullYear() === today.getFullYear() &&
-                           paymentDate.getMonth() === today.getMonth() &&
-                           paymentDate.getDate() === today.getDate();
-                });
-            } else if (filter === 'week') {
-                const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - today.getDay()); 
-                filteredPayments = payments.filter(p => new Date(p.date) >= startOfWeek);
-            } else if (filter === 'month') {
-                const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-                filteredPayments = payments.filter(p => new Date(p.date) >= startOfMonth);
-            }
-
-            const report = filteredPayments.reduce((acc, p) => {
-                acc[p.supplierName] = (acc[p.supplierName] || 0) + parseInt(p.amount);
-                return acc;
-            }, {});
-
-            if (Object.keys(report).length === 0) {
-                supplierPaymentsReportContainer.innerHTML = '<p>چ پارەدان د ڤێ دەمێ دیارکری دا نەهاتینە دیتن.</p>'; return;
-            }
-            
-            const table = document.createElement('table');
-            table.innerHTML = `
-                <thead><tr><th>دابینکەر (کۆمپانیا)</th><th>کۆژمێ گشتیێ پارەدانێ</th></tr></thead>
-                <tbody>
-                    ${Object.entries(report).sort(([,a],[,b]) => b-a).map(([name, total]) => `
-                        <tr><td>${name}</td><td class="price-col purchase">${formatCurrency(total)}</td></tr>`).join('')}
-                </tbody>`;
-            supplierPaymentsReportContainer.innerHTML = ''; 
-            supplierPaymentsReportContainer.appendChild(table);
+            const totalPurchaseValue = products.reduce((sum, p) => sum + ((p.purchasePrice || 0) * (p.quantity || 0)), 0);
+            const totalSellingValue = products.reduce((sum, p) => sum + ((p.sellingPrice || 0) * (p.quantity || 0)), 0);
+            inventoryValueReportContainer.innerHTML = `<table><thead><tr><th>جورێ بهای</th><th>کۆژمێ گشتی</th></tr></thead><tbody>
+                    <tr><td>کۆژمێ گشتیێ کرینێ (بەرهەم)</td><td class="price-col purchase">${formatCurrency(totalPurchaseValue)}</td></tr>
+                    <tr><td>کۆژمێ گشتیێ فرۆتنێ (بەرهەم)</td><td class="price-col selling">${formatCurrency(totalSellingValue)}</td></tr>
+                    <tr><td>قازانجا چاوەرێکری</td><td class="price-col profit">${formatCurrency(totalSellingValue - totalPurchaseValue)}</td></tr>
+                </tbody></table>`;
         }
         
         function renderSupplierPurchasesReport() {
-            const report = products.reduce((acc, p) => {
-                const purchaseValue = parseInt(p.purchasePrice || 0) * parseInt(p.quantity || 0);
-                if(p.supplier) {
-                    acc[p.supplier] = (acc[p.supplier] || 0) + purchaseValue;
-                }
+            if (payments.length === 0) { supplierPurchasesReportContainer.innerHTML = '<p class="no-data" style="text-align:center;">چ کرین تۆمارنەکرینه.</p>'; return; }
+            const report = payments.reduce((acc, p) => {
+                if(p.supplierName) acc[p.supplierName] = (acc[p.supplierName] || 0) + p.amount;
                 return acc;
             }, {});
-
-             if (Object.keys(report).length === 0) {
-                supplierPurchasesReportContainer.innerHTML = '<p>چ کرین ژ دابینکەران نەهاتینە تۆمارکرن.</p>'; return;
-            }
-
-            const table = document.createElement('table');
-            table.innerHTML = `
-                <thead><tr><th>دابینکەر</th><th>کۆژمێ گشتیێ کرینێ</th></tr></thead>
-                <tbody>
-                    ${Object.entries(report).sort(([,a],[,b]) => b-a).map(([name, total]) => `
-                        <tr><td>${name}</td><td class="price-col purchase">${formatCurrency(total)}</td></tr>`).join('')}
-                </tbody>`;
-            supplierPurchasesReportContainer.innerHTML = '';
-            supplierPurchasesReportContainer.appendChild(table);
+            supplierPurchasesReportContainer.innerHTML = `<table><thead><tr><th>دابینکەر</th><th>کۆژمێ گشتیێ کرینێ</th></tr></thead><tbody>
+                ${Object.entries(report).sort(([,a],[,b]) => b-a).map(([name, total]) => `<tr><td>${name}</td><td class="price-col purchase">${formatCurrency(total)}</td></tr>`).join('')}
+            </tbody></table>`;
         }
-
         function renderProductProfitabilityReport() {
-            const profitableProducts = products.map(p => {
-                const profit = parseInt(p.sellingPrice || 0) - parseInt(p.purchasePrice || 0);
-                return { name: p.name, profit: profit };
-            }).filter(p => p.profit > 0)
-              .sort((a,b) => b.profit - a.profit);
-
-            if (profitableProducts.length === 0) {
-                productProfitabilityReportContainer.innerHTML = '<p>چ بەرهەم قازانجا وان دیار نینە.</p>'; return;
-            }
-            
-            const table = document.createElement('table');
-            table.innerHTML = `
-                <thead><tr><th>ناڤێ بەرهەمی</th><th>قازانجا هەر دانەیەک</th></tr></thead>
-                <tbody>
-                    ${profitableProducts.map(p => `
-                        <tr><td>${p.name}</td><td class="price-col profit">${formatCurrency(p.profit)}</td></tr>`).join('')}
-                </tbody>`;
-            productProfitabilityReportContainer.innerHTML = '';
-            productProfitabilityReportContainer.appendChild(table);
+            const profitableProducts = products.map(p => ({ name: p.name, profit: (p.sellingPrice||0) - (p.purchasePrice||0) })).filter(p => p.profit > 0).sort((a,b) => b.profit - a.profit);
+            if (profitableProducts.length === 0) { productProfitabilityReportContainer.innerHTML = '<p class="no-data" style="text-align:center;">چ بەرهەم قازانجا وان دیار نینە.</p>'; return; }
+            productProfitabilityReportContainer.innerHTML = `<table><thead><tr><th>ناڤێ بەرهەمی</th><th>قازانجا هەر دانەیەک</th></tr></thead><tbody>
+                ${profitableProducts.map(p => `<tr><td>${p.name}</td><td class="price-col profit">${formatCurrency(p.profit)}</td></tr>`).join('')}
+            </tbody></table>`;
         }
-        
         function renderLowStockReport() {
-            const LOW_STOCK_THRESHOLD = 10;
-            const lowStockProducts = products.filter(p => parseInt(p.quantity) <= LOW_STOCK_THRESHOLD)
-                                           .sort((a,b) => a.quantity - b.quantity);
-            if (lowStockProducts.length === 0) { lowStockReportContainer.innerHTML = '<p>چ بەرهەم ستۆکا وان کێم نینە.</p>'; return; }
-            const table = document.createElement('table');
-            table.innerHTML = `<thead><tr><th>ناڤ</th><th>کەمیا مای</th></tr></thead><tbody>
+            const lowStockProducts = products.filter(p => p.quantity <= 10).sort((a,b) => a.quantity - b.quantity);
+            if (lowStockProducts.length === 0) { lowStockReportContainer.innerHTML = '<p class="no-data" style="text-align:center;">چ بەرهەم ستۆکا وان کێم نینە.</p>'; return; }
+            lowStockReportContainer.innerHTML = `<table><thead><tr><th>ناڤ</th><th>کەمیا مای</th></tr></thead><tbody>
                 ${lowStockProducts.map(p => `<tr><td>${p.name}</td><td style="color:var(--danger-color); font-weight:bold;">${p.quantity}</td></tr>`).join('')}
-            </tbody>`;
-            lowStockReportContainer.innerHTML = ''; lowStockReportContainer.appendChild(table);
+            </tbody></table>`;
         }
-
         function renderNearExpiryReport() {
-            const today = new Date(); 
-            const upcomingDays = 30;
+            const today = new Date(); const upcomingDays = 30;
             const expiryLimitDate = new Date(); expiryLimitDate.setDate(today.getDate() + upcomingDays);
-
-            const nearExpiryProducts = products.filter(p => { 
-                if (!p.expiryDate) return false;
-                const expiryDate = new Date(p.expiryDate); 
-                const expiryDateOnly = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-                const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                const expiryLimitDateOnly = new Date(expiryLimitDate.getFullYear(), expiryLimitDate.getMonth(), expiryLimitDate.getDate());
-
-                return expiryDateOnly <= expiryLimitDateOnly && expiryDateOnly >= todayDateOnly; 
-            }).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-            if (nearExpiryProducts.length === 0) { expiryReportContainer.innerHTML = '<p>چ بەرهەم د 30 ڕۆژێن بهێت دا تاریخا وان ب دوماهیک ناهێت.</p>'; return; }
-            const table = document.createElement('table');
-            table.innerHTML = `<thead><tr><th>ناڤ</th><th>تاریخا خلاسبوونێ</th><th>ڕۆژێن ماین</th></tr></thead><tbody>
-                ${nearExpiryProducts.map(p => { 
-                    const expiryDate = new Date(p.expiryDate); 
-                    const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24)); 
-                    return `<tr><td>${p.name}</td><td style="color:var(--danger-color); font-weight:bold;">${p.expiryDate}</td><td>${daysLeft} ڕۆژ</td></tr>`
-                }).join('')}
-            </tbody>`;
-            expiryReportContainer.innerHTML = ''; expiryReportContainer.appendChild(table);
+            const nearExpiryProducts = products.filter(p => p.expiryDate && new Date(p.expiryDate) <= expiryLimitDate && new Date(p.expiryDate) >= today).sort((a,b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+            if (nearExpiryProducts.length === 0) { expiryReportContainer.innerHTML = '<p class="no-data" style="text-align:center;">چ بەرهەم د 30 ڕۆژێن بهێت دا ب دوماهیک ناهێن.</p>'; return; }
+            expiryReportContainer.innerHTML = `<table><thead><tr><th>ناڤ</th><th>تاریخا خلاسبوونێ</th><th>ڕۆژێن ماین</th></tr></thead><tbody>
+                ${nearExpiryProducts.map(p => `<tr><td>${p.name}</td><td style="color:var(--danger-color);">${p.expiryDate}</td><td>${Math.ceil((new Date(p.expiryDate) - today) / (1000*60*60*24))} ڕۆژ</td></tr>`).join('')}
+            </tbody></table>`;
         }
 
-        function renderSalesReport() {
-            if (sales.length === 0) {
-                salesReportContainer.innerHTML = '<p>چ فرۆشتن تۆمارنەکراون.</p>';
-                return;
+        // --- Barcode Scanner (html5-qrcode) ---
+        function onScanSuccess(decodedText, decodedResult) {
+            barcodeInput.value = decodedText;
+            stopScanner();
+            showToast(`بارکۆد هاتە دیتن: ${decodedText}`);
+            const existingProduct = products.find(p => p.barcode === decodedText);
+            if (existingProduct) {
+                // Trigger the edit button click
+                const editButton = productListContainer.querySelector(`.edit-btn[data-barcode="${decodedText}"]`);
+                if (editButton) {
+                    editButton.click();
+                }
             }
-
-            const salesByDate = sales.reduce((acc, sale) => {
-                const saleDate = sale.timestamp ? new Date(sale.timestamp.toDate()).toLocaleDateString('ku-IQ') : new Date().toLocaleDateString('ku-IQ');
-                acc[saleDate] = (acc[saleDate] || 0) + sale.totalAmount;
-                return acc;
-            }, {});
-
-            let salesHtml = `
-                <h3>فرۆشتن بەپێی ڕۆژ</h3>
-                <table>
-                    <thead><tr><th>ڕۆژ</th><th>کۆژمەی فرۆشتن</th></tr></thead>
-                    <tbody>
-                        ${Object.entries(salesByDate).sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA)).map(([date, total]) => `
-                            <tr><td>${date}</td><td class="price-col selling">${formatCurrency(total)}</td></tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <h3 style="margin-top: 2rem;">هەموو فرۆشتنەکان</h3>
-                <table>
-                    <thead>
-                        <tr><th>ID فرۆشتن</th><th>بکارهێنەر</th><th>ژمارەی شتومەک</th><th>کۆی گشتی</th><th>کات</th></tr>
-                    </thead>
-                    <tbody>
-                        ${sales.sort((a, b) => (b.timestamp ? b.timestamp.toDate() : 0) - (a.timestamp ? a.timestamp.toDate() : 0)).map(s => `
-                            <tr>
-                                <td>${s.id.slice(0, 8)}...</td><td>${s.cashier || 'نادیار'}</td><td>${s.items.length}</td>
-                                <td class="price-col selling">${formatCurrency(s.totalAmount)}</td>
-                                <td>${s.timestamp ? new Date(s.timestamp.toDate()).toLocaleString('ku-IQ') : 'نادیار'}</td>
-                            </tr>`).join('')}
-                    </tbody>
-                </table>`;
-            salesReportContainer.innerHTML = salesHtml;
         }
 
-        // --- Barcode Scanner Logic ---
-        let isScannerActive = false;
-        let potentialBarcode = null;
-        let confirmationCount = 0;
-        const CONFIRMATION_THRESHOLD = 3;
+        function onScanFailure(error) {
+            // console.warn(`Code scan error = ${error}`);
+        }
 
         function startScanner() {
-            scannerContainer.style.display = 'block';
-            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader", "upc_reader", "code_39_reader"] } }, (err) => { 
-                if (err) { showToast('خەلەتی: نەشیا کامیرێ ڤەکەت', 'danger'); console.error(err); return; } 
-                Quagga.start(); isScannerActive = true; 
-            });
+            scannerModal.style.display = 'flex';
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("scanner-reader");
+            }
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+                .catch(err => showToast('خەلەتی د ڤەکرنا کامیرێ دا', 'danger'));
         }
-        function stopScanner() { 
-            if (isScannerActive) { 
-                Quagga.stop(); 
-                isScannerActive = false; 
-                scannerContainer.style.display = 'none'; 
-                potentialBarcode = null;
-                confirmationCount = 0;
-            } 
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    scannerModal.style.display = 'none';
+                }).catch(err => console.error("Failed to stop scanner", err));
+            } else {
+                 scannerModal.style.display = 'none';
+            }
         }
-        scanBtn.addEventListener('click', () => { 
-            if (!isScannerActive) startScanner(); 
-            else stopScanner(); 
-        });
+        
+        scanBtn.addEventListener('click', startScanner);
         stopScanBtn.addEventListener('click', stopScanner);
 
-        Quagga.onDetected(result => { 
-            const detectedCode = result.codeResult.code; 
-            if (!detectedCode) return;
-
-            if (potentialBarcode !== detectedCode) {
-                potentialBarcode = detectedCode;
-                confirmationCount = 1;
-                return;
-            }
-
-            confirmationCount++;
-
-            if (confirmationCount >= CONFIRMATION_THRESHOLD) {
-                const confirmedCode = potentialBarcode;
-                barcodeInput.value = confirmedCode;
-                showToast(`بارکۆد هاتە خواندن: ${confirmedCode}`); 
-                stopScanner(); 
-                
-                const existingProduct = products.find(p => p.barcode === confirmedCode);
-                if (existingProduct) {
-                     const editButton = productListContainer.querySelector(`button.edit-btn[data-barcode="${confirmedCode}"]`);
-                     if (editButton) editButton.click();
-                }
-            }
-        });
-        
         // --- Firebase Real-time Listeners ---
         let initialLoadComplete = false;
         function setupFirestoreListeners() {
-            const commonErrorHandler = (collectionName, error) => {
-                console.error(`Error fetching ${collectionName}:`, error);
-                showToast(`خەلەتی د وەرگرتنا ${collectionName} دا.`, 'danger');
-            };
-            
-            db.collection('products').onSnapshot(snapshot => {
-                products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (initialLoadComplete) {
-                    renderAdminList(searchInput.value);
-                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-                }
-            }, error => commonErrorHandler('بەرهەمان', error));
+            const commonErrorHandler = (name, error) => console.error(`Error fetching ${name}:`, error);
 
-            db.collection('suppliers').onSnapshot(snapshot => {
-                suppliers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 if (initialLoadComplete) {
-                    renderSuppliersList();
-                    populateSuppliersDropdowns();
-                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-                }
-            }, error => commonErrorHandler('دابینکەران', error));
-
-            db.collection('payments').onSnapshot(snapshot => {
-                payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                 if (initialLoadComplete) {
-                    renderPaymentsList();
-                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-                }
-            }, error => commonErrorHandler('پارەدانان', error));
-
-            db.collection('sales').onSnapshot(snapshot => {
-                sales = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (initialLoadComplete) {
-                    renderAllReports(document.querySelector('#payment-report-filters .btn.active')?.getAttribute('data-filter') || 'all');
-                }
-            }, error => commonErrorHandler('فرۆشتنەکان', error));
+            db.collection('products').onSnapshot(snap => {
+                products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(initialLoadComplete) { renderAdminList(null, productListContainer); renderAllReports(); }
+            }, e => commonErrorHandler('products', e));
+            db.collection('suppliers').onSnapshot(snap => {
+                suppliers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(initialLoadComplete) { renderSuppliersList(); populateSuppliersDropdowns(); renderAllReports(); }
+            }, e => commonErrorHandler('suppliers', e));
+             db.collection('supplier_ledger').onSnapshot(snap => {
+                supplierLedger = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(initialLoadComplete) { renderPayablesList(); renderSuppliersList(); renderAllReports(); }
+            }, e => commonErrorHandler('supplier_ledger', e));
+            db.collection('payments').onSnapshot(snap => {
+                payments = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(initialLoadComplete) { renderPaymentsList(); renderAllReports(); }
+            }, e => commonErrorHandler('payments', e));
         }
 
         async function loadInitialDataAndReports() {
+            showLoader();
             try {
-                const [productsSnap, suppliersSnap, paymentsSnap, salesSnap] = await Promise.all([
-                    db.collection('products').get(),
+                const [pSnap, suSnap, slSnap, paSnap] = await Promise.all([
+                    db.collection('products').get(), 
                     db.collection('suppliers').get(),
-                    db.collection('payments').get(),
-                    db.collection('sales').get()
+                    db.collection('supplier_ledger').get(),
+                    db.collection('payments').get()
                 ]);
 
-                products = productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                suppliers = suppliersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                payments = paymentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                sales = salesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                products = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                suppliers = suSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                supplierLedger = slSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                payments = paSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                renderAdminList();
+                renderAdminList(null, productListContainer); 
                 renderSuppliersList();
+                renderPayablesList();
                 renderPaymentsList();
-                populateSuppliersDropdowns();
+                populateSuppliersDropdowns(); 
                 renderAllReports();
                 
-                initialLoadComplete = true;
-                hideLoader();
+                initialLoadComplete = true; 
                 showToast('ب خێرهاتی بۆ پانێلا ئەدمینی');
-
                 setupFirestoreListeners();
-                document.getElementById('payment-date').valueAsDate = new Date();
                 
+                ['payable-date', 'product-expiry-date', 'payment-date'].forEach(id => {
+                    const el = document.getElementById(id); if (el) el.valueAsDate = new Date();
+                });
             } catch (error) {
                 console.error("Error during initial data load:", error);
-                showToast('خەلەتیەکا مەزن د بارکرنا داتایان دا ڕوویدا!', 'danger');
+                showToast('خەلەتی د بارکرنا داتایان دا!', 'danger');
+            } finally {
                 hideLoader();
             }
         }
