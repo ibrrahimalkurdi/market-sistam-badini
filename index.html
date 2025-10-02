@@ -2,750 +2,302 @@
 <html lang="ku" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستەما کاشێر - خالا فرۆشتنێ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>پانێلا کرێکاران</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="پانێلا کرێکاران">
+    <meta name="theme-color" content="#0077b6">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <style>
-        :root {
-            --primary-color: #007f5f; /* A bit greener for POS */
-            --secondary-color: #38a3a5;
-            --accent-color: #83e85a;
-            --danger-color: #d62828;
-            --success-color: #2a9d8f;
-            --background-color: #f8f9fa; /* Lighter background */
-            --card-bg: #ffffff;
-            --text-color: #2c3e50;
-            --border-radius: 10px;
-            --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
-        
-        body {
-            font-family: 'Vazirmatn', -apple-system, sans-serif;
-            margin: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            font-size: 15px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1rem 1.5rem;
-            text-align: center;
-            box-shadow: var(--box-shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        header h1 { margin: 0; font-size: 1.5rem; }
-        header #cashier-info { font-size: 0.9rem; }
-        main { 
-            flex-grow: 1;
-            padding: 1.5rem; 
-            max-width: 1400px; 
-            margin: 1.5rem auto; 
-            width: 100%;
-        }
-       
-        /* --- VIEW SWITCHING STYLES --- */
-        .view {
-            display: none;
-        }
-        #login-view.active {
-            display: block;
-        }
-        #pos-view.active {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-        @media (min-width: 992px) {
-            #pos-view.active {
-                grid-template-columns: 2fr 1fr;
-            }
-        }
-        /* --- END VIEW SWITCHING STYLES --- */
-
-        .pos-section {
-            background-color: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-        }
-        h2 {
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 1.3rem;
-            color: var(--primary-color);
-        }
-        .form-group { margin-bottom: 1rem; }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-        }
-        .form-group input:focus, .form-group select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(0, 127, 95, 0.2);
-        }
-        .btn {
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            padding: 0.7rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 0.2rem;
-        }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn.danger { background-color: var(--danger-color); }
-        .btn.success { background-color: var(--success-color); }
-
-        .barcode-input-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
-        #product-search-input { flex-grow: 1; }
-        
-        #scanner-container { padding: 1rem; border: 2px dashed #ccc; border-radius: var(--border-radius); margin-top: 1rem; }
-        #scanner-container .viewport, #scanner-container video { width: 100%; }
-
-        #product-search-results {
-            max-height: 250px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-        }
-        .search-result-item {
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .search-result-item:hover { background-color: #f0f8ff; }
-        .search-result-item span { flex: 1; }
-        .search-result-item .add-to-cart-btn {
-            background-color: var(--success-color);
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-        }
-
-        #cart-items {
-            margin-top: 1.5rem;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .cart-item {
-            display: flex;
-            align-items: center;
-            padding: 0.8rem 1rem;
-            border-bottom: 1px solid #eee;
-        }
-        .cart-item:last-child { border-bottom: none; }
-        .cart-item-details { flex-grow: 1; }
-        .cart-item-details .item-name { font-weight: bold; }
-        .cart-item-details .item-price { font-size: 0.9rem; color: #555; }
-        .cart-item-quantity {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-left: 1rem;
-        }
-        .cart-item-quantity input { width: 50px; text-align: center; padding: 0.4rem; font-size: 0.9rem; border: 1px solid #ccc; border-radius: 4px; }
-        .cart-item-actions button {
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            cursor: pointer;
-            color: var(--danger-color);
-            padding: 0 0.5rem;
-        }
-
-        .cart-summary {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 2px solid var(--secondary-color);
-            font-size: 1.1rem;
-        }
-        .cart-summary div {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.4rem 0;
-        }
-        .cart-summary .total-amount {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary-color);
-        }
-
-        #login-view { max-width: 400px; margin: 5rem auto; text-align: center; }
-        
-        #toast {
-            position: fixed; bottom: -100px; left: 50%;
-            transform: translateX(-50%); background-color: var(--success-color); color: white;
-            padding: 1rem 2rem; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            transition: bottom 0.5s ease; z-index: 1000; width: 90%; max-width: 500px; text-align: center;
-        }
-        #toast.danger { background-color: var(--danger-color); }
-        #toast.info { background-color: #007bff; }
-        #toast.show { bottom: 20px; }
-
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .header-controls .btn {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
+        :root {--primary-color: #0077b6;--secondary-color: #00b4d8;--success-color: #2a9d8f;--danger-color: #e63946;--background-color: #f0f3f5;--card-bg: #ffffff;--text-color: #2b2d42;--border-radius: 12px;--box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);--light-gray: #e9ecef;}
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap');
+        body {font-family: 'Vazirmatn', sans-serif;margin: 0;background-color: var(--background-color);color: var(--text-color);font-size: 16px;line-height: 1.6;}
+        header {background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));color: white;padding: 1rem 1.5rem;display: flex;justify-content: space-between;align-items: center;box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        header h1 {margin: 0;font-size: 1.5rem;font-weight: 700;}
+        #user-info {font-size: 0.9rem;font-weight: 600;}
+        main {padding: 1.5rem;max-width: 1200px;margin: auto;}
+        .view {display: none;}
+        .view.active {display: block;animation: fadeIn 0.4s ease-out;}
+        @keyframes fadeIn {from {opacity: 0;transform: translateY(10px);}to {opacity: 1;transform: translateY(0);}}
+        .btn {background-color: var(--primary-color);color: white;border: none;padding: 0.8rem 1.8rem;font-size: 1rem;font-weight: 600;border-radius: 8px;cursor: pointer;transition: all 0.25s;display: inline-flex;align-items: center;justify-content: center;gap: 0.5rem;}
+        .btn:hover {opacity: 0.85;transform: translateY(-2px);box-shadow: 0 3px 10px rgba(0,0,0,0.1);}
+        .btn.success-btn {background-color: var(--success-color);}
+        .btn.danger-btn {background-color: var(--danger-color);}
+        .back-btn {margin-bottom: 1.5rem;}
+        .card {background-color: var(--card-bg);padding: 1.5rem;border-radius: var(--border-radius);box-shadow: var(--box-shadow);margin-bottom: 1.5rem;}
+        h2 {margin-top: 0;font-size: 1.4rem;font-weight: 700;color: var(--primary-color);border-bottom: 2px solid var(--light-gray);padding-bottom: 0.5rem;margin-bottom: 1.5rem;}
+        .form-group {margin-bottom: 1.2rem;}
+        .form-group label {display: block;margin-bottom: 0.5rem;font-weight: 600;}
+        .form-group input {width: 100%;padding: 0.8rem;border: 1px solid #ccc;border-radius: 8px;box-sizing: border-box;font-size: 1rem;}
+        .form-group input:focus {border-color: var(--primary-color);outline: none;box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.2);}
+        #login-view {max-width: 400px;margin: 5rem auto;text-align: center;}
+        .dashboard-actions {display: grid;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));gap: 1.5rem;margin-bottom: 2rem;}
+        .action-button {background: var(--card-bg);border: none;padding: 2rem 1rem;border-radius: var(--border-radius);box-shadow: var(--box-shadow);cursor: pointer;transition: all 0.3s;text-align: center;font-family: inherit;}
+        .action-button:hover {transform: translateY(-7px);box-shadow: 0 8px 25px rgba(0,0,0,0.12);}
+        .action-button .icon {font-size: 3.5rem;color: var(--primary-color);line-height: 1;}
+        .action-button h3 {margin: 1rem 0 0;font-size: 1.2rem;color: var(--text-color);}
+        #cart-container h3 {font-size: 1.2rem;margin-bottom: 1rem;}
+        #cart-items-list {list-style-type: none;padding: 0;margin-bottom: 1.5rem;}
+        #cart-items-list li {display: flex;justify-content: space-between;align-items: center;padding: 0.8rem;border-bottom: 1px solid var(--light-gray);font-size: 1rem;}
+        #cart-items-list li:last-child {border: none;}
+        #cart-items-list .item-name {font-weight: 600;}
+        #cart-items-list .item-price {color: var(--success-color);font-weight: 600;}
+        #total-price-display {text-align: center;font-size: 1.8rem;font-weight: 700;color: var(--primary-color);background: #f0f8ff;padding: 1rem;border-radius: 8px;margin-bottom: 1.5rem;}
+        #total-price-display small {font-size: 1rem;font-weight: 400;}
+        .modal {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(0,0,0,0.6);display: none;align-items: center;justify-content: center;z-index: 2000;animation: fadeIn 0.3s;}
+        .modal.active {display: flex;}
+        .modal-content {background: white;padding: 1.5rem 2rem;border-radius: var(--border-radius);width: 90%;max-width: 500px;box-shadow: 0 10px 30px rgba(0,0,0,0.2);}
+        .modal-content h3 {margin-top: 0;margin-bottom: 1rem;color: var(--primary-color);}
+        #scanner-reader {width: 100%;border-radius: 8px;overflow: hidden;border: 2px solid var(--light-gray);}
+        #toast {position: fixed;bottom: -100px;left: 50%;transform: translateX(-50%);background-color: var(--success-color);color: white;padding: 1rem 1.8rem;border-radius: 8px;box-shadow: 0 5px 15px rgba(0,0,0,0.2);transition: bottom 0.5s ease, transform 0.5s ease;z-index: 1000;width: 90%;max-width: 450px;text-align: center;font-size: 1rem;}
+        #toast.danger {background-color: var(--danger-color);}
+        #toast.show {bottom: 20px;}
+        #loader-overlay {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: rgba(255, 255, 255, 0.9);z-index: 9999;display: flex;justify-content: center;align-items: center;flex-direction: column;}
+        .spinner {border: 8px solid #f3f3f3;border-top: 8px solid var(--primary-color);border-radius: 50%;width: 60px;height: 60px;animation: spin 1s linear infinite;}
+        @keyframes spin {0% {transform: rotate(0deg);}100% {transform: rotate(360deg);}}
+        table {width: 100%;border-collapse: collapse;margin-top: 1rem;}
+        th, td {padding: 0.8rem;border-bottom: 1px solid var(--light-gray);text-align: right;white-space: nowrap;}
+        th {background-color: #f8f9fa;font-weight: 700;color: var(--primary-color);}
+        .amount-col, .price-col {font-weight: 700;color: var(--success-color);}
+        .list-wrapper {overflow-x: auto;}
     </style>
 </head>
 <body>
-    <header>
-        <h1>سیستەما کاشێر</h1>
-        <div class="header-controls">
-            <span id="cashier-info" style="color: white;">کاشێر: نادیار</span>
-            <button id="logout-btn" class="btn danger">چوونا دەرڤە</button>
+    <div id="loader-overlay"><div class="spinner"></div></div>
+
+    <header id="main-header" style="display: none;">
+        <h1>پانێلا کرێکاران</h1>
+        <div>
+            <div id="user-info"></div>
+            <button id="logout-btn" class="btn danger-btn" style="padding: 0.4rem 0.8rem; margin-top: 0.3rem;">چوونا دەرڤە</button>
         </div>
     </header>
-    
-    <main>
-        <div id="loading-indicator" style="text-align: center; padding: 4rem;">
-            <h2>...ل هیڤیێ بە</h2>
-        </div>
 
-        <!-- بەشێ لۆگینێ -->
-        <section id="login-view" class="view">
-            <div class="pos-section">
-                <h2>چوونا ژۆر (کاشێر)</h2>
+    <main>
+        <section id="login-view" class="view active">
+            <div class="card">
+                <h2>چوونا ژۆر (کرێکار)</h2>
                 <form id="login-form">
-                    <div class="form-group">
-                        <label for="email">ئیمەیل:</label>
-                        <input type="email" id="email" required value="cashier@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="password">پاسۆرد:</label>
-                        <input type="password" id="password" required value="cashier123">
-                    </div>
-                    <button type="submit" class="btn">داخلبوون</button>
-                    <!-- دوگمەی دروستکردنی هەژمار لابرا -->
+                    <div class="form-group"><label for="worker-email">ئیمەیل:</label><input type="email" id="worker-email" required></div>
+                    <div class="form-group"><label for="worker-password">پاسۆرد:</label><input type="password" id="worker-password" required></div>
+                    <button type="submit" class="btn" style="width: 100%;">داخلبوون</button>
                 </form>
             </div>
         </section>
 
-        <!-- دیمەنێ سەرەکیێ فرۆشتنێ -->
-        <section id="pos-view" class="view">
-            <div class="pos-section">
-                <h2>لێگەریان و زێدەکرنا بەرهەمان</h2>
-                <div class="barcode-input-group">
-                    <input type="text" id="barcode-scanner-input" placeholder="بارکۆدێ بنڤیسە یان سکان بکە">
-                    <button type="button" id="scan-barcode-btn" class="btn">&#128247; سکان</button>
-                </div>
-                <div id="scanner-container" style="display:none;">
-                    <div id="interactive" class="viewport"></div>
-                    <button type="button" id="stop-scan-btn" class="btn danger" style="width:100%; margin-top:0.5rem;">راوەستاندن</button>
-                </div>
-
-                <div class="form-group">
-                    <input type="text" id="product-search-input" placeholder="لێگەریان ل گۆر ناڤێ بەرهەمی...">
-                </div>
-                <div id="product-search-results">
-                    <!-- Search results will be displayed here -->
+        <section id="dashboard-view" class="view">
+            <div class="dashboard-actions">
+                <button id="start-scan-btn" class="action-button"><div class="icon">&#128247;</div><h3>فرۆتن ب سکان</h3></button>
+                <button id="manual-entry-btn" class="action-button"><div class="icon">&#9997;</div><h3>تۆمارکرنا ب دەست</h3></button>
+                <button id="price-check-btn" class="action-button"><div class="icon">&#128181;</div><h3>پشکنینا بهای</h3></button>
+            </div>
+            
+            <div id="cart-container" class="card" style="display: none;">
+                <h2>لیستا فرۆتنێ یا نها</h2>
+                <ul id="cart-items-list"></ul>
+                <div id="total-price-display">0 <small>دینار</small></div>
+                <div style="display: flex; gap: 1rem;">
+                    <button id="finalize-sale-btn" class="btn success-btn" style="flex-grow: 1;">پشتراستکرنا فرۆتنێ</button>
+                    <button id="clear-cart-btn" class="btn danger-btn" style="flex-grow: 1;">ڤالاکرن</button>
                 </div>
             </div>
 
-            <div class="pos-section">
-                <h2>عەرەبانەیا فرۆشتنێ</h2>
-                <div id="cart-items">
-                    <!-- Cart items will be displayed here -->
-                </div>
-                <div class="cart-summary">
-                    <div>
-                        <span>کۆی گشتی:</span>
-                        <span id="total-amount" class="total-amount">0 <small>دینار</small></span>
-                    </div>
-                    <button id="process-sale-btn" class="btn success" style="width: 100%; margin-top: 1rem;">تۆمارکرنا فرۆشتنێ</button>
-                    <button id="clear-cart-btn" class="btn danger" style="width: 100%; margin-top: 0.5rem;">ڤالاکرنا عەرەبانەیێ</button>
+            <div class="card">
+                <h2>تۆمارێن فرۆتنێن من (ئەڤرۆ)</h2>
+                <div class="list-wrapper">
+                    <table id="sales-history-table">
+                        <thead><tr><th>رووژ و دەم</th><th>کۆژمە</th><th>جور</th><th>پێکهاتە</th></tr></thead>
+                        <tbody><tr><td colspan="4" style="text-align:center;">چ تۆمار نینن...</td></tr></tbody>
+                    </table>
                 </div>
             </div>
         </section>
+
+        <section id="price-check-view" class="view">
+            <button class="btn back-btn" data-target="dashboard-view">&#8592; پاشڤەچوون</button>
+            <div class="card">
+                <h2>پشکنینا بهایێ بەرهەمان</h2>
+                <div class="form-group"><input type="text" id="price-search-input" placeholder="لێگەریان ل گۆر ناڤ یان بارکۆد..."></div>
+                <div class="list-wrapper">
+                    <table id="price-check-results-table">
+                        <thead><tr><th>ناڤێ بەرهەمی</th><th>بارکۆد</th><th>بهای</th></tr></thead>
+                        <tbody><tr><td colspan="3" style="text-align:center;">ل بەرهەمەکێ بگەڕێ...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
     </main>
 
+    <div id="scanner-modal" class="modal"><div class="modal-content"><h3>کامیرێ بەرامبەر بارکۆدی بگرە</h3><div id="scanner-reader"></div><button type="button" id="stop-scan-btn" class="btn danger-btn" style="width:100%; margin-top:1rem;">داخستن</button></div></div>
+    
+    <div id="manual-entry-modal" class="modal"><div class="modal-content"><h3>تۆمارکرنا شولێ ب دەست</h3><form id="manual-entry-form"><div class="form-group"><label for="manual-amount">کۆژمێ پارەی (ب دینار):</label><input type="number" id="manual-amount" required placeholder="بۆ نمونە: 5000"></div><div class="form-group"><label for="manual-notes">تێبینی (ئختیاری):</label><input type="text" id="manual-notes" placeholder="بۆ نمونە: کریا گەهاندنێ"></div><div style="display: flex; gap: 1rem;"><button type="submit" class="btn success-btn" style="flex-grow: 1;">پێشکەفتن</button><button type="button" id="close-manual-modal-btn" class="btn" style="background-color: #6c757d; flex-grow: 1;">پاشڤەچوون</button></div></form></div></div>
+    
+    <div id="supervisor-code-modal" class="modal"><div class="modal-content"><h3>پشتراستکرن</h3><form id="supervisor-code-form"><div class="form-group"><label for="supervisor-code">کۆدێ سەرپەرشتیاری داخل بکە:</label><input type="password" id="supervisor-code" inputmode="numeric" pattern="[0-9]*" required></div><div style="display: flex; gap: 1rem;"><button type="submit" class="btn success-btn" style="flex-grow: 1;">پشتراستکرن</button><button type="button" id="close-code-modal-btn" class="btn" style="background-color: #6c757d; flex-grow: 1;">پاشڤەچوون</button></div></form></div></div>
+
     <div id="toast"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
     <script>
-    // --- Firebase Configuration ---
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyBslRXn1kjfJTm7sKtmoUtgyKkDA0Ro-34",
         authDomain: "ibrrahim-alkurdi.firebaseapp.com",
         projectId: "ibrrahim-alkurdi",
-        storageBucket: "ibrrahim-alkurdi.firebasestorage.app",
+        storageBucket: "ibrrahim-alkurdi.appspot.com",
         messagingSenderId: "490128006332",
         appId: "1:490128006332:web:b7ff692d5ff4513a2644b9",
         measurementId: "G-Q4VWN89L3R"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(FIREBASE_CONFIG);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', () => {
-        // --- DOM Elements ---
-        const loginForm = document.getElementById('login-form');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const logoutBtn = document.getElementById('logout-btn');
-        const cashierInfoSpan = document.getElementById('cashier-info');
-
         const allViews = document.querySelectorAll('.view');
         const toast = document.getElementById('toast');
-        const loadingIndicator = document.getElementById('loading-indicator');
+        const loader = document.getElementById('loader-overlay');
+        const mainHeader = document.getElementById('main-header');
+        const userInfo = document.getElementById('user-info');
         
-        // POS Elements
-        const barcodeScannerInput = document.getElementById('barcode-scanner-input');
-        const scanBtn = document.getElementById('scan-barcode-btn');
-        const stopScanBtn = document.getElementById('stop-scan-btn');
-        const scannerContainer = document.getElementById('scanner-container');
-        const productSearchInput = document.getElementById('product-search-input');
-        const productSearchResults = document.getElementById('product-search-results');
-        const cartItemsContainer = document.getElementById('cart-items');
-        const totalAmountSpan = document.getElementById('total-amount');
-        const processSaleBtn = document.getElementById('process-sale-btn');
+        const loginForm = document.getElementById('login-form');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        const startScanBtn = document.getElementById('start-scan-btn');
+        const manualEntryBtn = document.getElementById('manual-entry-btn');
+        const priceCheckBtn = document.getElementById('price-check-btn');
+        document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', () => switchView(btn.dataset.target)));
+
+        const cartContainer = document.getElementById('cart-container');
+        const cartItemsList = document.getElementById('cart-items-list');
+        const totalPriceDisplay = document.getElementById('total-price-display');
+        const finalizeSaleBtn = document.getElementById('finalize-sale-btn');
         const clearCartBtn = document.getElementById('clear-cart-btn');
 
-        // --- Global Data Arrays and State ---
-        let allProducts = []; 
-        let cart = [];      
-        let currentCashier = null; 
-        let lastScannedCode = null;
-        let scanConfirmations = 0;
-        const REQUIRED_CONFIRMATIONS = 3;
+        const scannerModal = document.getElementById('scanner-modal');
+        const stopScanBtn = document.getElementById('stop-scan-btn');
+        const manualEntryModal = document.getElementById('manual-entry-modal');
+        const closeManualModalBtn = document.getElementById('close-manual-modal-btn');
+        const manualEntryForm = document.getElementById('manual-entry-form');
+        const supervisorCodeModal = document.getElementById('supervisor-code-modal');
+        const supervisorCodeForm = document.getElementById('supervisor-code-form');
+        const closeCodeModalBtn = document.getElementById('close-code-modal-btn');
+        
+        const salesHistoryTableBody = document.querySelector('#sales-history-table tbody');
 
-        // --- Utility Functions ---
-        function showToast(message, type = 'success') {
-            toast.textContent = message; toast.className = type; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
+        const priceSearchInput = document.getElementById('price-search-input');
+        const priceCheckResultsTableBody = document.querySelector('#price-check-results-table tbody');
 
-        function switchView(viewId) {
-            allViews.forEach(v => v.classList.remove('active'));
-            const newView = document.getElementById(viewId);
-            if (newView) newView.classList.add('active');
-        }
+        let html5QrCode = null;
+        let currentUser = null;
+        let cart = [];
+        let products = [];
+        let tempManualAmount = 0;
+        let tempManualNotes = '';
 
-        function formatCurrency(number) {
-            return parseInt(number || 0).toLocaleString() + ' <small>دینار</small>';
-        }
+        const showToast = (message, type = 'success') => { toast.textContent = message; toast.className = type; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 4000); };
+        const switchView = (viewId) => { allViews.forEach(v => v.classList.remove('active')); document.getElementById(viewId)?.classList.add('active'); window.scrollTo(0,0); };
+        const showLoader = () => loader.style.display = 'flex';
+        const hideLoader = () => loader.style.display = 'none';
+        const formatCurrency = (number) => `${parseInt(number).toLocaleString()} <small>دینار</small>`;
 
-        // --- Firebase Auth Persistence & State Listener ---
-        // Ensure the auth state is persisted across sessions (this is the default, but we make it explicit)
-        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .then(() => {
-                // Now that persistence is set, listen for auth state changes.
-                // This is the single source of truth for managing views.
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        // User is signed in. Check their role.
-                        db.collection('users').doc(user.uid).get().then(doc => {
-                            if (doc.exists && (doc.data().role === 'cashier' || doc.data().role === 'admin')) {
-                                currentCashier = user.email;
-                                cashierInfoSpan.textContent = `کاشێر: ${currentCashier}`;
-                                switchView('pos-view');
-                                showToast(`ب خێرهاتی، کاشێر ${currentCashier}`);
-                                loadInitialData();
-                                barcodeScannerInput.focus();
-                            } else {
-                                showToast('تو ڕێگەپێدراو نینین بۆ چونە ژوورەوە وەک کاشێر.', 'danger');
-                                auth.signOut(); // Log out unauthorized user
-                                switchView('login-view');
-                            }
-                            loadingIndicator.style.display = 'none'; // Hide loading indicator
-                        }).catch(error => {
-                            console.error("Error getting user role:", error);
-                            showToast('خەلەتی د وەرگرتنا ڕۆڵا بکارهێنەری دا.', 'danger');
-                            auth.signOut();
-                            switchView('login-view');
-                            loadingIndicator.style.display = 'none'; // Hide loading indicator
-                        });
-                    } else {
-                        // User is signed out.
-                        currentCashier = null;
-                        cashierInfoSpan.textContent = 'کاشێر: نادیار';
-                        switchView('login-view');
-                        clearCart();
-                        if (productsUnsubscribe) productsUnsubscribe(); 
-                        loadingIndicator.style.display = 'none'; // Hide loading indicator
-                    }
-                });
-            })
-            .catch(error => {
-                console.error("Persistence Error:", error);
-                showToast('خەلەتی د پاراستنا دۆخی داخلبوونێ دا.', 'danger');
-                loadingIndicator.style.display = 'none';
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                userInfo.textContent = `بخێرهاتی, ${user.email.split('@')[0]}`;
+                mainHeader.style.display = 'flex';
+                switchView('dashboard-view');
+                loadInitialData();
+            } else {
+                currentUser = null;
+                products = [];
+                cart = [];
+                mainHeader.style.display = 'none';
                 switchView('login-view');
-            });
+                hideLoader();
+            }
+        });
+        
+        async function loadInitialData() {
+            showLoader();
+            await Promise.all([fetchSalesHistory(), fetchAllProducts()]);
+            hideLoader();
+        }
 
+        loginForm.addEventListener('submit', async e => { e.preventDefault(); showLoader(); const email = document.getElementById('worker-email').value; const password = document.getElementById('worker-password').value; try { await auth.signInWithEmailAndPassword(email, password); } catch (error) { showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger'); hideLoader(); } });
+        logoutBtn.addEventListener('click', async () => { await auth.signOut(); cart = []; updateCartUI(); salesHistoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">...</td></tr>'; showToast('ب سەرکەفتی چوویە دەرڤە.'); });
+        
+        function updateCartUI() { if (cart.length === 0) { cartContainer.style.display = 'none'; return; } cartContainer.style.display = 'block'; cartItemsList.innerHTML = cart.map(item => `<li><span class="item-name">${item.name}</span><span class="item-price">${formatCurrency(item.price)}</span></li>`).join(''); const total = cart.reduce((sum, item) => sum + item.price, 0); totalPriceDisplay.innerHTML = formatCurrency(total); }
+        clearCartBtn.addEventListener('click', () => { if (confirm('تو پشتراستی دخوازی لیستێ ڤالا بکەی؟')) { cart = []; updateCartUI(); showToast('لیست هاتە ڤالاکرن.'); } });
 
-        // --- Authentication Logic ---
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                // onAuthStateChanged listener will handle the view switching
-            } catch (error) {
-                showToast(`خەلەتی د داخلبوونێ دا: ${error.message}`, 'danger');
-            }
-        });
-
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-                showToast('ب سەرکەفتی چوویە دەرڤە.', 'success');
-            } catch (error) {
-                showToast(`خەلەتی د چونە دەرڤە دا: ${error.message}`, 'danger');
-            }
-        });
-
-        // --- Product Search and Cart Management (The rest of the JS code is unchanged) ---
-        function renderSearchResults(searchText) {
-            productSearchResults.innerHTML = '';
-            const availableProducts = allProducts.filter(p => (p.quantity || 0) > 0);
-            const filtered = availableProducts.filter(p => 
-                p.name.toLowerCase().includes(searchText.toLowerCase()) || 
-                p.barcode.includes(searchText)
-            ).slice(0, 10);
-            if (filtered.length === 0) {
-                productSearchResults.innerHTML = '<p style="padding: 1rem;">چ بەرهەم نەهاتنە دیتن یان ستۆکا وان تەواو نیە.</p>';
-                return;
-            }
-            filtered.forEach(p => {
-                const div = document.createElement('div');
-                div.classList.add('search-result-item');
-                div.innerHTML = `
-                    <span>${p.name} (بارکۆد: ${p.barcode}) - ${formatCurrency(p.sellingPrice)}</span>
-                    <button class="btn add-to-cart-btn" data-product-id="${p.id}">زێدەکرن</button>
-                `;
-                productSearchResults.appendChild(div);
-            });
-        }
-        productSearchInput.addEventListener('input', (e) => {
-            const searchText = e.target.value.trim();
-            if (searchText.length > 1) {
-                renderSearchResults(searchText);
-            } else {
-                productSearchResults.innerHTML = '';
-            }
-        });
-        productSearchResults.addEventListener('click', (e) => {
-            const target = e.target.closest('.add-to-cart-btn');
-            if (target) {
-                const productId = target.getAttribute('data-product-id');
-                const product = allProducts.find(p => p.id === productId);
-                if (product) {
-                    addItemToCart(product);
-                }
-            }
-        });
-        barcodeScannerInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const barcode = barcodeScannerInput.value.trim();
-                const product = allProducts.find(p => p.barcode === barcode);
-                if (product) {
-                    addItemToCart(product);
-                    barcodeScannerInput.value = '';
-                } else {
-                    showToast('بەرهەم ب ڤی بارکۆدێ نەهاتە دیتن.', 'danger');
-                }
-            }
-        });
-        function addItemToCart(product) {
-            const existingCartItemIndex = cart.findIndex(item => item.id === product.id);
-            const availableStock = product.quantity || 0;
-            if (existingCartItemIndex > -1) {
-                const currentCartQuantity = cart[existingCartItemIndex].quantity;
-                if (currentCartQuantity < availableStock) {
-                    cart[existingCartItemIndex].quantity++;
-                    showToast(`${product.name} دانەیەک زێدەکرن بۆ عەرەبانەیێ.`, 'success');
-                } else {
-                    showToast(`ستۆکێ تەواو نینە بۆ ${product.name}! تەنها ${availableStock} دانە مایە.`, 'danger');
-                }
-            } else {
-                if (availableStock > 0) {
-                    cart.push({ ...product, quantity: 1 });
-                    showToast(`${product.name} ب سەرکەفتی هاتە زێدەکرن بۆ عەرەبانەیێ.`, 'success');
-                } else {
-                    showToast(`${product.name} ژ ستۆکێ نەماوە! ناتوانی زێدەی بکەی.`, 'danger');
-                }
-            }
-            renderCart();
-        }
-        function renderCart() {
-            cartItemsContainer.innerHTML = '';
-            let totalAmount = 0;
-            if (cart.length === 0) {
-                cartItemsContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">عەرەبانە ڤالایە.</p>';
-            } else {
-                const updatedCart = [];
-                for (const item of cart) {
-                    const actualProduct = allProducts.find(p => p.id === item.id);
-                    if (!actualProduct) {
-                        showToast(`${item.name} ژ بەرهەمان نەماوە و ژ عەرەبانەیێ هاتە ژێبرن.`, 'info');
-                        continue;
-                    }
-                    const availableStock = actualProduct.quantity || 0;
-                    if (item.quantity > availableStock) {
-                        item.quantity = availableStock;
-                        if (item.quantity === 0) {
-                            showToast(`ستۆکێ ${item.name} ب دوماهیک هات، ژ عەرەبانەیێ هاتە ژێبرن.`, 'info');
-                            continue;
-                        }
-                        showToast(`کەمیا ${item.name} د عەرەبانەیێ دا هاتە کێمکرن بۆ ${availableStock} ژبەر کێمبوونا ستۆکێ.`, 'info');
-                    }
-                    if (item.quantity < 1) {
-                         item.quantity = 1;
-                    }
-                    updatedCart.push(item);
-                    const div = document.createElement('div');
-                    div.classList.add('cart-item');
-                    const itemTotalPrice = item.sellingPrice * item.quantity;
-                    totalAmount += itemTotalPrice;
-                    div.innerHTML = `
-                        <div class="cart-item-details">
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-price">${formatCurrency(item.sellingPrice)} x ${item.quantity} = ${formatCurrency(itemTotalPrice)}</div>
-                        </div>
-                        <div class="cart-item-quantity">
-                            <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;" data-action="decrease" data-product-id="${item.id}">-</button>
-                            <input type="number" value="${item.quantity}" min="1" max="${availableStock}" data-product-id="${item.id}" class="quantity-input">
-                            <button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.9rem;" data-action="increase" data-product-id="${item.id}">+</button>
-                        </div>
-                        <div class="cart-item-actions">
-                            <button data-action="remove" data-product-id="${item.id}">&#10005;</button>
-                        </div>
-                    `;
-                    cartItemsContainer.appendChild(div);
-                }
-                cart = updatedCart;
-            }
-            totalAmountSpan.innerHTML = formatCurrency(totalAmount);
-        }
-        cartItemsContainer.addEventListener('click', (e) => {
-            const target = e.target;
-            const productId = target.getAttribute('data-product-id');
-            const action = target.getAttribute('data-action');
-            if (!productId) return;
-            const cartItemIndex = cart.findIndex(item => item.id === productId);
-            if (cartItemIndex === -1) return;
-            const productInCart = cart[cartItemIndex];
-            const actualProduct = allProducts.find(p => p.id === productId);
-            const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
-            if (action === 'increase') {
-                if (productInCart.quantity < availableStock) {
-                    productInCart.quantity++;
-                    showToast(`دانەیەکی ${productInCart.name} زێدەبوو.`, 'success');
-                } else {
-                    showToast(`ستۆکێ تەواو نینە بۆ ${productInCart.name}! تەنها ${availableStock} دانە مایە.`, 'danger');
-                }
-            } else if (action === 'decrease') {
-                if (productInCart.quantity > 1) {
-                    productInCart.quantity--;
-                    showToast(`دانەیەکی ${productInCart.name} کەم بووەوە.`, 'info');
-                } else {
-                    showToast('ژمارەی بەرهەم ناتوانرێت لە 1 کەمتر بێت، تکایە بسڕەوە ئەگەر ناتەوێت.', 'danger');
-                }
-            } else if (action === 'remove') {
-                if (confirm(`ئەرێ دخوازی "${productInCart.name}" ژ عەرەبانەیێ ژێببەی؟`)) {
-                    cart.splice(cartItemIndex, 1);
-                    showToast(`${productInCart.name} ژ عەرەبانەیێ هاتە ژێبرن.`, 'danger');
-                }
-            }
-            renderCart();
-        });
-        cartItemsContainer.addEventListener('change', (e) => {
-            const target = e.target;
-            if (target.classList.contains('quantity-input')) {
-                const productId = target.getAttribute('data-product-id');
-                let newQuantity = parseInt(target.value);
-                const cartItemIndex = cart.findIndex(item => item.id === productId);
-                if (cartItemIndex === -1) return;
-                const actualProduct = allProducts.find(p => p.id === productId);
-                const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
-                if (isNaN(newQuantity) || newQuantity < 1) {
-                    newQuantity = 1;
-                    showToast('ژمارەیەکی دروست بۆ کەمیا بەرهەمێ بنویسە (لانی کێم 1).', 'danger');
-                }
-                if (newQuantity > availableStock) {
-                    newQuantity = availableStock;
-                    showToast(`تەنها ${availableStock} دانە لەم بەرهەمە لە ستۆکدا ماوە. ژمارەکە گۆڕدرا.`, 'danger');
-                }
-                cart[cartItemIndex].quantity = newQuantity;
-                target.value = newQuantity;
-                renderCart();
-            }
-        });
-        processSaleBtn.addEventListener('click', async () => {
-            if (cart.length === 0) {
-                showToast('عەرەبانە ڤالایە، ناتوانی فرۆشتن تۆمار بکەی.', 'danger');
-                return;
-            }
-            for (const item of cart) {
-                const actualProduct = allProducts.find(p => p.id === item.id);
-                const availableStock = actualProduct ? (actualProduct.quantity || 0) : 0;
-                if (item.quantity > availableStock) {
-                    showToast(`ناتوانی فرۆشتنەکە ئەنجام بدەی: کەمیا "${item.name}" لە ستۆکدا بەس نیە (${availableStock} مایە).`, 'danger');
-                    renderCart();
-                    return;
-                }
-            }
-            const currentTotalAmount = cart.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
-            const confirmMessage = `ئەرێ دخوازی ڤێ فرۆشتنێ تۆمار بکەی؟ کۆی گشتی: ${formatCurrency(currentTotalAmount).replace('<small>دینار</small>', ' دینار')}`;
-            if (!confirm(confirmMessage)) {
-                return;
-            }
-            try {
-                const saleItems = cart.map(item => ({
-                    productId: item.id,
-                    barcode: item.barcode,
-                    name: item.name,
-                    quantity: item.quantity,
-                    sellingPrice: item.sellingPrice,
-                    totalItemPrice: item.sellingPrice * item.quantity
-                }));
-                await db.collection('sales').add({
-                    items: saleItems,
-                    totalAmount: currentTotalAmount,
-                    cashier: currentCashier,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                const batch = db.batch();
-                for (const item of cart) {
-                    const productRef = db.collection('products').doc(item.id);
-                    batch.update(productRef, {
-                        quantity: firebase.firestore.FieldValue.increment(-item.quantity)
-                    });
-                }
-                await batch.commit();
-                showToast('فرۆشتن ب سەرکەفتی هاتە تۆمارکرن و ستۆک نویکرایەوە!', 'success');
-                clearCart();
-            } catch (error) {
-                showToast(`خەلەتی د تۆمارکرنا فرۆشتنێ دا: ${error.message}`, 'danger');
-                console.error("Error processing sale:", error);
-            }
-        });
-        clearCartBtn.addEventListener('click', () => {
-            if (cart.length > 0) {
-                if (confirm('ئەرێ دخوازی هەمی بەرهەمێن د عەرەبانەیێ دا ڤالا بکەی؟')) {
-                    clearCart();
-                    showToast('عەرەبانە ب سەرکەفتی هاتە ڤالاکرن.', 'danger');
-                }
-            } else {
-                showToast('عەرەبانە بەری نوکە ڤالایە.', 'info');
-            }
-        });
-        function clearCart() {
-            cart = [];
-            renderCart();
-            productSearchInput.value = '';
-            productSearchResults.innerHTML = '';
-            barcodeScannerInput.value = '';
-            barcodeScannerInput.focus();
-        }
-        let isScannerActive = false;
-        function startScanner() {
-            scannerContainer.style.display = 'block';
-            Quagga.init({ inputStream: { name: "Live", type: "LiveStream", target: document.querySelector('#interactive'), constraints: { facingMode: "environment" } }, decoder: { readers: ["ean_reader", "code_128_reader", "upc_reader", "code_39_reader"] } }, (err) => { 
-                if (err) { 
-                    showToast('خەلەتی: نەشیا کامیرێ ڤەکەت. دڵنیا بە کامێرا بەردەست بێت و مۆڵەتی پێ درابێت.', 'danger'); 
-                    console.error(err); 
-                    scannerContainer.style.display = 'none';
-                    return; 
-                } 
-                Quagga.start(); 
-                isScannerActive = true; 
-                showToast('سکانەر چالاک کرا، بارکۆدێ بخوێنە.', 'info');
-            });
-        }
-        function stopScanner() { 
-            if (isScannerActive) { 
-                Quagga.stop(); 
-                isScannerActive = false; 
-                scannerContainer.style.display = 'none'; 
-                showToast('سکانەر ڕاگیرا.', 'info');
-                barcodeScannerInput.focus();
-            } 
-        }
-        scanBtn.addEventListener('click', () => { 
-            if (!isScannerActive) { 
-                startScanner(); 
-            } else { 
-                stopScanner(); 
-            } 
-        });
+        const onScanSuccess = async (decodedText) => { stopScanner(); showLoader(); try { const product = products.find(p => p.barcode === decodedText); if (!product) { showToast('ئەڤ بەرهەمە د سیستەمی دا نینە!', 'danger'); return; } if (product.quantity <= 0) { showToast('کەمیا ڤی بەرهەمی د کۆگەهێ دا نەمایە!', 'danger'); return; } cart.push({ productId: product.id, name: product.name, price: product.sellingPrice, barcode: product.barcode }); updateCartUI(); showToast(`"${product.name}" بۆ لیستێ هاتە زێدەکرن`); } catch (error) { console.error("Error finding product:", error); showToast('خەلەتیەک د پرۆسێسا دیتنا بەرهەمی دا روویدا', 'danger'); } finally { hideLoader(); } };
+        const startScanner = () => { scannerModal.classList.add('active'); if (!html5QrCode) html5QrCode = new Html5Qrcode("scanner-reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess).catch(err => { showToast('خەلەتی د ڤەکرنا کامیرێ دا.', 'danger'); scannerModal.classList.remove('active'); }); };
+        const stopScanner = () => { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().catch(err => {}); } scannerModal.classList.remove('active'); };
+        startScanBtn.addEventListener('click', startScanner);
         stopScanBtn.addEventListener('click', stopScanner);
-        Quagga.onDetected(result => {
-            const detectedCode = result.codeResult.code;
-            if (detectedCode === lastScannedCode) {
-                scanConfirmations++;
-                showToast(`پشتڕاستکرن ${scanConfirmations}/${REQUIRED_CONFIRMATIONS} بۆ کۆدێ: ${detectedCode}`, 'info');
-            } else {
-                lastScannedCode = detectedCode;
-                scanConfirmations = 1;
-                showToast(`کۆدەکێ نوو هاتە دیتن: ${detectedCode}. ل هیڤیا پشتڕاستکرنێ...`, 'info');
+
+        finalizeSaleBtn.addEventListener('click', async () => { if (cart.length === 0) { showToast('لیست ڤالایە، چ تشت نینە بۆ فرۆتنێ.', 'danger'); return; } showLoader(); const totalAmount = cart.reduce((sum, item) => sum + item.price, 0); const productQuantities = cart.reduce((acc, item) => { acc[item.productId] = (acc[item.productId] || 0) + 1; return acc; }, {}); try { const batch = db.batch(); const salesRef = db.collection('sales').doc(); batch.set(salesRef, { workerId: currentUser.uid, workerEmail: currentUser.email, timestamp: firebase.firestore.FieldValue.serverTimestamp(), totalAmount, type: 'scanned', items: cart }); for (const productId in productQuantities) { batch.update(db.collection('products').doc(productId), { quantity: firebase.firestore.FieldValue.increment(-productQuantities[productId]) }); } await batch.commit(); showToast('فرۆتن ب سەرکەفتی هاتە تۆمارکرن.'); cart = []; updateCartUI(); fetchSalesHistory(); } catch (error) { console.error("Error finalizing sale:", error); showToast('خەلەتی د تۆمارکرنا فرۆتنێ دا روویدا!', 'danger'); } finally { hideLoader(); } });
+
+        manualEntryBtn.addEventListener('click', () => manualEntryModal.classList.add('active'));
+        closeManualModalBtn.addEventListener('click', () => manualEntryModal.classList.remove('active'));
+        manualEntryForm.addEventListener('submit', e => { e.preventDefault(); const amount = parseInt(document.getElementById('manual-amount').value); if (isNaN(amount) || amount <= 0) { showToast('تکایە کۆژمەکێ دروست داخل بکە', 'danger'); return; } tempManualAmount = amount; tempManualNotes = document.getElementById('manual-notes').value; manualEntryModal.classList.remove('active'); supervisorCodeModal.classList.add('active'); document.getElementById('supervisor-code').focus(); });
+        
+        closeCodeModalBtn.addEventListener('click', () => supervisorCodeModal.classList.remove('active'));
+        supervisorCodeForm.addEventListener('submit', async e => { e.preventDefault(); const code = document.getElementById('supervisor-code').value; if (code !== "1234") { showToast('کۆدێ خەلەتە! پرۆسە هاتە راوەستاندن.', 'danger'); supervisorCodeForm.reset(); return; } supervisorCodeModal.classList.remove('active'); supervisorCodeForm.reset(); showLoader(); try { await db.collection('sales').add({ workerId: currentUser.uid, workerEmail: currentUser.email, timestamp: firebase.firestore.FieldValue.serverTimestamp(), totalAmount: tempManualAmount, type: 'manual', items: [{ name: tempManualNotes || "تۆمارا دەستی", price: tempManualAmount }] }); showToast('کار ب سەرکەفتی هاتە تۆمارکرن.'); manualEntryForm.reset(); fetchSalesHistory(); } catch (error) { console.error("Error saving manual entry:", error); showToast('خەلەتی د تۆمارکرنا کاری دا روویدا!', 'danger'); } finally { hideLoader(); } });
+
+        async function fetchSalesHistory() {
+            if (!currentUser) return;
+            try {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const snapshot = await db.collection('sales').where('workerId', '==', currentUser.uid).where('timestamp', '>=', today).orderBy('timestamp', 'desc').get();
+                if (snapshot.empty) { salesHistoryTableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">چ فرۆتن بۆ ئەڤرۆ نەهاتینە تۆمارکرن.</td></tr>'; return; }
+                salesHistoryTableBody.innerHTML = snapshot.docs.map(doc => {
+                    const sale = doc.data();
+                    const saleTime = sale.timestamp ? sale.timestamp.toDate().toLocaleString('ar-IQ', { dateStyle: 'short', timeStyle: 'short' }) : 'N/A';
+                    const itemsSummary = sale.items.map(i => i.name).join(', ');
+                    return `<tr><td>${saleTime}</td><td class="amount-col">${formatCurrency(sale.totalAmount)}</td><td>${sale.type === 'scanned' ? 'سکان' : 'دەستی'}</td><td>${itemsSummary.substring(0, 50)}</td></tr>`;
+                }).join('');
+            } catch (error) {
+                console.error("Error fetching sales history:", error);
+                showToast('خەلەتی د ئینانا تۆمارێن فرۆتنێ دا! پشتراستبە تە ئیندێکس دروستکریە.', 'danger');
+                salesHistoryTableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--danger-color);">خەلەتی! تکایە پشتراستبە کو تە ئیندێکس ب دروستی دروستکریە.</td></tr>`;
             }
-            if (scanConfirmations >= REQUIRED_CONFIRMATIONS) {
-                showToast(`کۆد ب سەرکەفتی هاتە پشتڕاستکرن: ${detectedCode}`, 'success');
-                barcodeScannerInput.value = detectedCode;
-                stopScanner();
-                const product = allProducts.find(p => p.barcode === detectedCode);
-                if (product) {
-                    addItemToCart(product);
-                    barcodeScannerInput.value = '';
-                } else {
-                    showToast('بەرهەم ب ڤی بارکۆدێ پشتڕاستکری نەهاتە دیتن.', 'danger');
-                }
-                barcodeScannerInput.focus();
-                lastScannedCode = null;
-                scanConfirmations = 0;
-            }
-        });
-        let productsUnsubscribe;
-        function loadInitialData() {
-            if (productsUnsubscribe) {
-                productsUnsubscribe();
-            }
-            productsUnsubscribe = db.collection('products').onSnapshot(snapshot => {
-                allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderCart(); 
-                if (productSearchInput.value.trim().length > 1) {
-                    renderSearchResults(productSearchInput.value);
-                } else {
-                    productSearchResults.innerHTML = '';
-                }
-            }, error => {
-                console.error("Error fetching products:", error);
-                showToast('خەلەتی د وەرگرتنا بەرهەمان دا.', 'danger');
-            });
         }
+        
+        priceCheckBtn.addEventListener('click', () => switchView('price-check-view'));
+        async function fetchAllProducts() {
+            try {
+                const snapshot = await db.collection('products').get();
+                products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                showToast('خەلەتی د ئینانا لیستا بەرهەمان دا', 'danger');
+            }
+        }
+
+        priceSearchInput.addEventListener('input', e => {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm.length < 2) {
+                priceCheckResultsTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">ل ناڤ یان بارکۆد بگەڕێ...</td></tr>';
+                return;
+            }
+            const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm) || (p.barcode && p.barcode.includes(searchTerm)));
+            if (filteredProducts.length === 0) {
+                priceCheckResultsTableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">چ بەرهەم نەهاتنە دیتن.</td></tr>';
+                return;
+            }
+            priceCheckResultsTableBody.innerHTML = filteredProducts.map(p => `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.barcode || 'N/A'}</td>
+                    <td class="price-col">${formatCurrency(p.sellingPrice)}</td>
+                </tr>
+            `).join('');
+        });
     });
     </script>
 </body>
